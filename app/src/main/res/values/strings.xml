@@ -1,4 +1,13 @@
 <resources>
     <string name="app_name">Bairro News</string>
     <string name="Login">Login de Repórter</string>
+    <string name="email">E-mail</string>
+    <string name="email_digitar">Digite seu e-mail</string>
+    <string name="senha">Senha</string>
+    <string name="senha_digitar">Digite sua senha</string>
+    <string name="entrar">Entrar</string>
+    <string name="nao_conta">Não tem uma conta?</string>
+    <string name="cadastrar">Cadastre-se</string>
+    <string name="termos">Termos de Uso</string>
+    <string name="politica">Política de Privacidade</string>
 </resources>
