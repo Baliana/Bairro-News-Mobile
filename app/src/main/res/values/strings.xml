@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Bairro News</string>
+    <string name="Login">Login de Repórter</string>
 </resources>
