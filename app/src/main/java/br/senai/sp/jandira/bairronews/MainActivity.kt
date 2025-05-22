@@ -11,7 +11,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.NavHost
 import br.senai.sp.jandira.bairronews.ui.theme.BairroNewsTheme
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.compose.composable
+import br.senai.sp.jandira.bairronews.screen.TelaCadastro
+import br.senai.sp.jandira.bairronews.screen.TelaCadastroScreen
+import br.senai.sp.jandira.bairronews.screen.TelaLogin
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -19,11 +25,21 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             BairroNewsTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                var navController = rememberNavController()
+                NavHost(
+                    navController = navController,
+                    startDestination = "login"
+                ){
+                    composable(
+                        route = "login"
+                    ){
+                        TelaLogin(navController)
+                    }
+                    composable(
+                        route = "cadastro"
+                    ) {
+                        TelaCadastro(navController)
+                    }
                 }
             }
         }

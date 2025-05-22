@@ -24,9 +24,9 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import br.senai.sp.jandira.bairronews.R
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TelaLogin(navController: NavHostController?) {
+fun TelaCadastro(navController: NavHostController?) {
+    var nome by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
@@ -44,7 +44,7 @@ fun TelaLogin(navController: NavHostController?) {
     ) {
         Column {
             Text(
-                text = stringResource(R.string.Login),
+                text = stringResource(R.string.cadastro_user),
                 fontWeight = FontWeight.Bold,
                 fontSize = 32.sp,
                 modifier = Modifier.padding(top = 64.dp)
@@ -53,63 +53,22 @@ fun TelaLogin(navController: NavHostController?) {
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = stringResource(R.string.email),
+                text = stringResource(R.string.complement_name),
                 fontSize = 12.sp,
+                fontWeight = FontWeight.Normal,
                 modifier = Modifier.padding(top = 64.dp, bottom = 4.dp)
             )
 
             OutlinedTextField(
-                value = email,
+                value = nome,
                 onValueChange = {
-                    email = it
+                    nome = it
                     isError = false
                 },
-                label = { Text(stringResource(R.string.email)) },
-                placeholder = { Text(stringResource(R.string.email_digitar)) },
-                leadingIcon = {
-                    Icon(
-                        Icons.Filled.Email,
-                        contentDescription = "Ícone de e-mail",
-                        tint = Color.Gray
-                    )
-                },
+                label = { Text(text = stringResource(R.string.Digite_name)) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
-                singleLine = true,
-                shape = RoundedCornerShape(12.dp),
-                isError = isError
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = stringResource(R.string.senha),
-                fontSize = 12.sp,
-                modifier = Modifier.padding(bottom = 4.dp)
-            )
-
-            OutlinedTextField(
-                value = password,
-                onValueChange = {
-                    password = it
-                    isError = false
-                },
-                label = { Text(stringResource(R.string.senha)) },
-                placeholder = { Text(stringResource(R.string.senha_digitar)) },
-                leadingIcon = {
-                    Icon(Icons.Filled.Lock, contentDescription = "Ícone de senha")
-                },
-                trailingIcon = {
-                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                        Icon(
-                            imageVector = if (passwordVisible) Icons.Default.Lock else Icons.Default.Lock,
-                            contentDescription = "Alternar visibilidade"
-                        )
-                    }
-                },
-                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 shape = RoundedCornerShape(12.dp),
                 isError = isError
@@ -124,22 +83,69 @@ fun TelaLogin(navController: NavHostController?) {
                 )
             }
 
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = stringResource(R.string.email),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Normal,
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
+
+            OutlinedTextField(
+                value = email,
+                onValueChange = { email = it },
+                label = { Text(text = stringResource(R.string.email)) },
+                placeholder = { Text(text = stringResource(R.string.email_digitar)) },
+                leadingIcon = {
+                    Icon(
+                        Icons.Filled.Email,
+                        contentDescription = "Ícone de e-mail",
+                        tint = Color.Gray
+                    )
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                singleLine = true,
+                shape = RoundedCornerShape(12.dp)
+            )
+
+            Text(
+                text = stringResource(R.string.senha),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Normal,
+                modifier = Modifier
+                    .padding(top = 10.dp, bottom = 4.dp)
+            )
+
+            OutlinedTextField(
+                value = password,
+                onValueChange = { password = it },
+                label = { Text(text = stringResource(R.string.senha)) },
+                placeholder = { Text(text = stringResource(R.string.senha_digitar)) },
+                leadingIcon = {
+                    Icon(Icons.Filled.Lock, contentDescription = "Ícone de senha")
+                },
+                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                shape = RoundedCornerShape(12.dp)
+            )
+
             Spacer(modifier = Modifier.height(24.dp))
 
             Button(
                 onClick = {
-                    if (email.isBlank() || !email.contains("@")) {
+                    if (nome.length < 3) {
                         isError = true
-                        errorMessage = context.getString(R.string.email_invalido)
-                    } else if (password.length < 4) {
-                        isError = true
-                        errorMessage = context.getString(R.string.senha_invalida)
+                        errorMessage = context.getString(R.string.support_name)
                     } else {
-                        val shared = context.getSharedPreferences("usuario", Context.MODE_PRIVATE)
-                        val editor = shared.edit()
-                        editor.putString("user_email", email.trim())
+                        val sharedName = context.getSharedPreferences("usuario", Context.MODE_PRIVATE)
+                        val editor = sharedName.edit()
+                        editor.putString("user_name", nome.trim())
                         editor.apply()
-                        // navController?.navigate("home_user") // se estiver usando navegação
+
                     }
                 },
                 modifier = Modifier
@@ -156,40 +162,15 @@ fun TelaLogin(navController: NavHostController?) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                Text(text = stringResource(R.string.nao_conta))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(text = stringResource(R.string.ja_tem_conta))
                 Text(
-                    text = stringResource(R.string.cadastrar),
+                    text = stringResource(R.string.Entre),
                     color = Color(0xFF1DA1F2),
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.clickable { }
-                )
-            }
-        }
-
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = stringResource(R.string.concordar_termos),
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold
-            )
-            Row {
-                Text(
-                    text = stringResource(R.string.termos),
-                    color = Color.Red,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 12.sp,
-                    modifier = Modifier.clickable { }
-                )
-                Text(" e ")
-                Text(
-                    text = stringResource(R.string.politica),
-                    color = Color.Red,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 12.sp,
                     modifier = Modifier.clickable { }
                 )
             }
@@ -199,6 +180,6 @@ fun TelaLogin(navController: NavHostController?) {
 
 @Preview(showSystemUi = true)
 @Composable
-private fun TelaLoginPreview() {
-    TelaLogin(null)
+private fun TelaCadastroPreview() {
+    TelaCadastro(null)
 }
