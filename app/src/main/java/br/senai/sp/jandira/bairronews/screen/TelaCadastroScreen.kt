@@ -1,13 +1,16 @@
 package br.senai.sp.jandira.bairronews.screen
 
+import android.app.DatePickerDialog
 import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,17 +26,52 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import br.senai.sp.jandira.bairronews.R
+import br.senai.sp.jandira.bairronews.model.User
+import br.senai.sp.jandira.bairronews.service.RetrofitFactory
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import java.util.Calendar
+
+fun formatarData(data: String): String {
+    val partes = data.split("/")
+    return if (partes.size == 3) {
+        val dia = partes[0].padStart(2, '0')
+        val mes = partes[1].padStart(2, '0')
+        val ano = partes[2]
+        "$ano-$mes-$dia"
+    } else {
+        ""
+    }
+}
 
 @Composable
 fun TelaCadastro(navController: NavHostController?) {
     var nome by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+    var dataNascimento by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
     var isError by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
 
     val context = LocalContext.current
+    val calendar = Calendar.getInstance()
+
+    val year = calendar.get(Calendar.YEAR)
+    val month = calendar.get(Calendar.MONTH)
+    val day = calendar.get(Calendar.DAY_OF_MONTH)
+
+    val datePickerDialog = DatePickerDialog(
+        context,
+        { _, selectedYear, selectedMonth, selectedDay ->
+            dataNascimento = "$selectedDay/${selectedMonth + 1}/$selectedYear"
+        },
+        year,
+        month,
+        day
+    )
 
     Column(
         modifier = Modifier
@@ -55,8 +93,7 @@ fun TelaCadastro(navController: NavHostController?) {
             Text(
                 text = stringResource(R.string.complement_name),
                 fontSize = 12.sp,
-                fontWeight = FontWeight.Normal,
-                modifier = Modifier.padding(top = 64.dp, bottom = 4.dp)
+                modifier = Modifier.padding(top = 16.dp, bottom = 4.dp)
             )
 
             OutlinedTextField(
@@ -66,12 +103,15 @@ fun TelaCadastro(navController: NavHostController?) {
                     isError = false
                 },
                 label = { Text(text = stringResource(R.string.Digite_name)) },
+                leadingIcon = {
+                    Icon(Icons.Default.Person, contentDescription = null)
+                },
+                isError = isError,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
-                singleLine = true,
                 shape = RoundedCornerShape(12.dp),
-                isError = isError
+                singleLine = true
             )
 
             if (isError) {
@@ -88,49 +128,91 @@ fun TelaCadastro(navController: NavHostController?) {
             Text(
                 text = stringResource(R.string.email),
                 fontSize = 12.sp,
-                fontWeight = FontWeight.Normal,
                 modifier = Modifier.padding(bottom = 4.dp)
             )
 
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
-                label = { Text(text = stringResource(R.string.email)) },
-                placeholder = { Text(text = stringResource(R.string.email_digitar)) },
+                label = { Text(stringResource(R.string.email)) },
+                placeholder = { Text(stringResource(R.string.email_digitar)) },
                 leadingIcon = {
-                    Icon(
-                        Icons.Filled.Email,
-                        contentDescription = "Ícone de e-mail",
-                        tint = Color.Gray
-                    )
+                    Icon(Icons.Default.Email, contentDescription = null)
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
-                singleLine = true,
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(12.dp),
+                singleLine = true
             )
+
+            Spacer(modifier = Modifier.height(16.dp))
 
             Text(
                 text = stringResource(R.string.senha),
                 fontSize = 12.sp,
-                fontWeight = FontWeight.Normal,
-                modifier = Modifier
-                    .padding(top = 10.dp, bottom = 4.dp)
+                modifier = Modifier.padding(bottom = 4.dp)
             )
 
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
-                label = { Text(text = stringResource(R.string.senha)) },
-                placeholder = { Text(text = stringResource(R.string.senha_digitar)) },
+                label = { Text(stringResource(R.string.senha)) },
+                placeholder = { Text(stringResource(R.string.senha_digitar)) },
                 leadingIcon = {
-                    Icon(Icons.Filled.Lock, contentDescription = "Ícone de senha")
+                    Icon(Icons.Default.Lock, contentDescription = null)
                 },
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                singleLine = true
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = "Confirmar senha",
+                fontSize = 12.sp,
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
+
+            OutlinedTextField(
+                value = confirmPassword,
+                onValueChange = { confirmPassword = it },
+                label = { Text("Confirmar senha") },
+                placeholder = { Text("Digite novamente a senha") },
+                leadingIcon = {
+                    Icon(Icons.Default.Lock, contentDescription = null)
+                },
+                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                singleLine = true
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = "Data de nascimento",
+                fontSize = 12.sp,
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
+
+            OutlinedTextField(
+                value = dataNascimento,
+                onValueChange = {},
+                label = { Text("Data de nascimento") },
+                leadingIcon = {
+                    Icon(Icons.Default.DateRange, contentDescription = null)
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .clickable { datePickerDialog.show() },
+                shape = RoundedCornerShape(12.dp),
                 singleLine = true,
-                shape = RoundedCornerShape(12.dp)
+                enabled = false,
+                readOnly = true
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -141,23 +223,47 @@ fun TelaCadastro(navController: NavHostController?) {
                         isError = true
                         errorMessage = context.getString(R.string.support_name)
                     } else {
-                        val sharedName = context.getSharedPreferences("usuario", Context.MODE_PRIVATE)
-                        val editor = sharedName.edit()
-                        editor.putString("user_name", nome.trim())
-                        editor.apply()
+                        val user = User(
+                            nome = nome.trim(),
+                            email = email.trim(),
+                            senha = password.trim(),
+                            dataDeNascimento = formatarData(dataNascimento),
+                            biografia = null,
+                            fotoPerfil = null
+                        )
 
+                        val call = RetrofitFactory.getUserService().saveUser(user)
+                        call.enqueue(object : Callback<User> {
+                            override fun onResponse(call: Call<User>, response: Response<User>) {
+                                if (response.isSuccessful) {
+                                    val userResponse = response.body()
+                                    userResponse?.let {
+                                        val sharedPref = context.getSharedPreferences("usuario", Context.MODE_PRIVATE)
+                                        with(sharedPref.edit()) {
+                                            putInt("id", it.id ?: 0)
+                                            putString("nome", it.nome)
+                                            putString("email", it.email)
+                                            apply()
+                                        }
+                                        navController?.navigate("home")
+                                    }
+                                } else {
+                                    isError = true
+                                    errorMessage = "Erro ao cadastrar: ${response.code()}"
+                                }
+                            }
+
+                            override fun onFailure(call: Call<User>, t: Throwable) {
+                                isError = true
+                                errorMessage = "Erro de conexão: ${t.message}"
+                            }
+                        })
                     }
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF1DA1F2),
-                    contentColor = Color.White
-                )
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp)
             ) {
-                Text("Entrar", fontWeight = FontWeight.Bold)
+                Text("Cadastrar", fontWeight = FontWeight.Bold)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -171,7 +277,9 @@ fun TelaCadastro(navController: NavHostController?) {
                     text = stringResource(R.string.Entre),
                     color = Color(0xFF1DA1F2),
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.clickable { }
+                    modifier = Modifier.clickable {
+                        navController?.navigate("login")
+                    }
                 )
             }
         }

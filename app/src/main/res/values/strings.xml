@@ -1,24 +1,28 @@
 <resources>
     <string name="app_name">Bairro News</string>
-    <string name="Login">Login </string>
-    <string name="cadastro_user">Cadastro </string>
-    <string name="complement_name">Nome completo </string>
-    <string name="Digite_name">Digite seu nome completo </string>
+
+    <!-- Login -->
+    <string name="Login">Login</string>
+    <string name="entrar">Entrar</string>
     <string name="email">E-mail</string>
     <string name="email_digitar">Digite seu e-mail</string>
     <string name="senha">Senha</string>
     <string name="senha_digitar">Digite sua senha</string>
-    <string name="entrar">Entrar</string>
-    <string name="nao_conta">Não tem uma conta?</string>
+    <string name="email_invalido">Seu e-mail está incorreto.</string>
+    <string name="senha_invalida">Sua senha está incorreta.</string>
+    <string name="nao_conta">Não tem uma conta? </string>
     <string name="cadastrar">Cadastre-se</string>
-    <string name="ja_tem_conta">já tem uma conta?</string>
+
+    <!-- Cadastro -->
+    <string name="cadastro_user">Cadastro</string>
+    <string name="complement_name">Nome completo</string>
+    <string name="Digite_name">Digite seu nome completo</string>
+    <string name="support_name">O nome deve ter pelo menos 3 caracteres.</string>
+    <string name="ja_tem_conta">Já tem uma conta?</string>
     <string name="Entre">Entre</string>
+
+    <!-- Termos -->
     <string name="concordar_termos">Ao se cadastrar, você concorda com nossos</string>
     <string name="termos">Termos de Uso</string>
     <string name="politica">Política de Privacidade</string>
-    <string name="support_name">O nome deve ter pelo menos 3 caracteres.</string>
-    <string name="email_invalido">Seu e-mail esta incorreto.</string>
-    <string name="senha_invalida">Sua senha esta incorreta.</string>
-
-
 </resources>

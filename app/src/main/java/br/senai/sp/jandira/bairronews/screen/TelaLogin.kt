@@ -1,6 +1,7 @@
 package br.senai.sp.jandira.bairronews.screen
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -18,11 +19,17 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import br.senai.sp.jandira.bairronews.R
+import br.senai.sp.jandira.bairronews.model.Login
+import br.senai.sp.jandira.bairronews.model.User
+import br.senai.sp.jandira.bairronews.service.RetrofitFactory
+import com.google.gson.Gson
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,6 +41,44 @@ fun TelaLogin(navController: NavHostController?) {
     var errorMessage by remember { mutableStateOf("") }
 
     val context = LocalContext.current
+
+    fun fazerLogin() {
+        val login = Login(email = email.trim(), senha = password.trim())
+
+        val call = RetrofitFactory.getUserService().postLogin(login)
+
+        call.enqueue(object : Callback<User> {
+            override fun onResponse(call: Call<User>, response: Response<User>) {
+                if (response.isSuccessful) {
+                    val user = response.body()
+
+                    if (user != null) {
+                        val shared = context.getSharedPreferences("usuario", Context.MODE_PRIVATE)
+                        val editor = shared.edit()
+                        val gson = Gson()
+
+                        val userJson = gson.toJson(user)
+                        editor.putString("user_data", userJson)
+                        editor.apply()
+
+                        navController?.navigate("home_user")
+                    } else {
+                        isError = true
+                        errorMessage = context.getString(R.string.erro_inesperado)
+                    }
+                } else {
+                    isError = true
+                    errorMessage = context.getString(R.string.login_invalido)
+                }
+            }
+
+            override fun onFailure(call: Call<User>, t: Throwable) {
+                isError = true
+                errorMessage = context.getString(R.string.erro_conexao)
+                Log.e("LOGIN_ERROR", "Erro: ${t.message}")
+            }
+        })
+    }
 
     Column(
         modifier = Modifier
@@ -52,12 +97,12 @@ fun TelaLogin(navController: NavHostController?) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // E-mail
             Text(
                 text = stringResource(R.string.email),
                 fontSize = 12.sp,
                 modifier = Modifier.padding(top = 64.dp, bottom = 4.dp)
             )
-
             OutlinedTextField(
                 value = email,
                 onValueChange = {
@@ -67,15 +112,9 @@ fun TelaLogin(navController: NavHostController?) {
                 label = { Text(stringResource(R.string.email)) },
                 placeholder = { Text(stringResource(R.string.email_digitar)) },
                 leadingIcon = {
-                    Icon(
-                        Icons.Filled.Email,
-                        contentDescription = "Ícone de e-mail",
-                        tint = Color.Gray
-                    )
+                    Icon(Icons.Filled.Email, contentDescription = "Ícone de e-mail", tint = Color.Gray)
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
+                modifier = Modifier.fillMaxWidth().height(56.dp),
                 singleLine = true,
                 shape = RoundedCornerShape(12.dp),
                 isError = isError
@@ -83,12 +122,12 @@ fun TelaLogin(navController: NavHostController?) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Senha
             Text(
                 text = stringResource(R.string.senha),
                 fontSize = 12.sp,
                 modifier = Modifier.padding(bottom = 4.dp)
             )
-
             OutlinedTextField(
                 value = password,
                 onValueChange = {
@@ -97,13 +136,11 @@ fun TelaLogin(navController: NavHostController?) {
                 },
                 label = { Text(stringResource(R.string.senha)) },
                 placeholder = { Text(stringResource(R.string.senha_digitar)) },
-                leadingIcon = {
-                    Icon(Icons.Filled.Lock, contentDescription = "Ícone de senha")
-                },
+                leadingIcon = { Icon(Icons.Filled.Lock, contentDescription = "Ícone de senha") },
                 trailingIcon = {
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
                         Icon(
-                            imageVector = if (passwordVisible) Icons.Default.Lock else Icons.Default.Lock,
+                            imageVector = Icons.Default.Lock,
                             contentDescription = "Alternar visibilidade"
                         )
                     }
@@ -135,16 +172,10 @@ fun TelaLogin(navController: NavHostController?) {
                         isError = true
                         errorMessage = context.getString(R.string.senha_invalida)
                     } else {
-                        val shared = context.getSharedPreferences("usuario", Context.MODE_PRIVATE)
-                        val editor = shared.edit()
-                        editor.putString("user_email", email.trim())
-                        editor.apply()
-                        // navController?.navigate("home_user") // se estiver usando navegação
+                        fazerLogin()
                     }
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
+                modifier = Modifier.fillMaxWidth().height(50.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF1DA1F2),
@@ -162,7 +193,9 @@ fun TelaLogin(navController: NavHostController?) {
                     text = stringResource(R.string.cadastrar),
                     color = Color(0xFF1DA1F2),
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.clickable { }
+                    modifier = Modifier.clickable {
+                        navController?.navigate("cadastro_usuario")
+                    }
                 )
             }
         }
@@ -195,10 +228,4 @@ fun TelaLogin(navController: NavHostController?) {
             }
         }
     }
-}
-
-@Preview(showSystemUi = true)
-@Composable
-private fun TelaLoginPreview() {
-    TelaLogin(null)
 }

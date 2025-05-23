@@ -17,6 +17,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.compose.composable
 import br.senai.sp.jandira.bairronews.screen.TelaCadastro
 import br.senai.sp.jandira.bairronews.screen.TelaCadastroScreen
+import br.senai.sp.jandira.bairronews.screen.TelaHome
 import br.senai.sp.jandira.bairronews.screen.TelaLogin
 
 class MainActivity : ComponentActivity() {
@@ -30,6 +31,11 @@ class MainActivity : ComponentActivity() {
                     navController = navController,
                     startDestination = "login"
                 ){
+                    composable(
+                        route = "home"
+                    ){
+                        TelaHome(navController)
+                    }
                     composable(
                         route = "login"
                     ){
