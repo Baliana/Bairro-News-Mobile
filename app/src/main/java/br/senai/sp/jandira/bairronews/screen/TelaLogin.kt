@@ -44,27 +44,33 @@ fun TelaLogin(navController: NavHostController?) {
 
     fun fazerLogin() {
         val login = Login(email = email.trim(), senha = password.trim())
+        val call = RetrofitFactory().getUserService().loginUser(login)
 
-        val call = RetrofitFactory.getUserService().postLogin(login)
-
-        call.enqueue(object : Callback<User> {
-            override fun onResponse(call: Call<User>, response: Response<User>) {
+        call.enqueue(object : Callback<AuthenticationUser> {
+            override fun onResponse(
+                call: Call<AuthenticationUser>,
+                response: Response<AuthenticationUser>
+            ) {
                 if (response.isSuccessful) {
-                    val user = response.body()
+                    val responseBody = response.body()
 
-                    if (user != null) {
-                        val shared = context.getSharedPreferences("usuario", Context.MODE_PRIVATE)
+                    if (responseBody != null && responseBody.status && responseBody.usuario != null) {
+                        val usuario = responseBody.usuario!!
+
+                        // Salvar apenas parte do usuário
+                        val shared = context.getSharedPreferences("user", Context.MODE_PRIVATE)
                         val editor = shared.edit()
-                        val gson = Gson()
-
-                        val userJson = gson.toJson(user)
-                        editor.putString("user_data", userJson)
+                        editor.putString("user_id", usuario.id.toString())
+                        editor.putString("user_name", usuario.nome.trim())
+                        editor.putString("user_email", usuario.email.trim())
+                        editor.putString("user_biografia", usuario.biografia ?: "")
+                        editor.putString("user_foto", usuario.foto_perfil ?: "")
                         editor.apply()
 
                         navController?.navigate("home_user")
                     } else {
                         isError = true
-                        errorMessage = context.getString(R.string.erro_inesperado)
+                        errorMessage = responseBody?.messagem ?: "Erro desconhecido"
                     }
                 } else {
                     isError = true
@@ -72,13 +78,14 @@ fun TelaLogin(navController: NavHostController?) {
                 }
             }
 
-            override fun onFailure(call: Call<User>, t: Throwable) {
+            override fun onFailure(call: Call<AuthenticationUser>, t: Throwable) {
                 isError = true
                 errorMessage = context.getString(R.string.erro_conexao)
                 Log.e("LOGIN_ERROR", "Erro: ${t.message}")
             }
         })
     }
+
 
     Column(
         modifier = Modifier
