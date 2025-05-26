@@ -20,6 +20,7 @@
     <string name="support_name">O nome deve ter pelo menos 3 caracteres.</string>
     <string name="ja_tem_conta">Já tem uma conta?</string>
     <string name="Entre">Entre</string>
+    <string name="ImagemDeCadastro">https://lncimg.lance.com.br/uploads/2025/01/Lucas-Moura-Bragantino-x-Sao-Paulo-scaled-aspect-ratio-512-320.jpg</string>
 
     <!-- Termos -->
     <string name="concordar_termos">Ao se cadastrar, você concorda com nossos</string>

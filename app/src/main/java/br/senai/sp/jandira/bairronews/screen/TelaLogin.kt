@@ -30,6 +30,10 @@ import com.google.gson.Gson
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+import br.senai.sp.jandira.bairronews.model.AuthenticationUser
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -64,7 +68,7 @@ fun TelaLogin(navController: NavHostController?) {
                         editor.putString("user_name", usuario.nome.trim())
                         editor.putString("user_email", usuario.email.trim())
                         editor.putString("user_biografia", usuario.biografia ?: "")
-                        editor.putString("user_foto", usuario.foto_perfil ?: "")
+                        editor.putString("user_foto", usuario.fotoPerfil ?: "")
                         editor.apply()
 
                         navController?.navigate("home_user")

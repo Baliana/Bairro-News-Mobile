@@ -59,7 +59,8 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation(libs.androidx.navigation.compose)
 
-
+    implementation("androidx.compose.material3:material3:1.1.2") // ou a versão mais recente
+    implementation("androidx.compose.material:material-icons-extended:1.5.4") // necessário para ícones
 
     //Retrofit
     implementation("com.squareup.retrofit2:retrofit:2.11.0")
