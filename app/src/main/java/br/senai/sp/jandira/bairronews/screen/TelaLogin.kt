@@ -206,7 +206,7 @@ fun TelaLogin(navController: NavHostController?) {
                     color = Color(0xFF1DA1F2),
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.clickable {
-                        navController?.navigate("cadastro_usuario")
+                        navController?.navigate("cadastro")
                     }
                 )
             }

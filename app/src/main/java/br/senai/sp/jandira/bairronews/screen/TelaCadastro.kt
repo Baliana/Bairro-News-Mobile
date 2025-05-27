@@ -257,7 +257,7 @@ fun TelaCadastro(navController: NavHostController?) {
                             senha = password.trim(),
                             dataDeNascimento = formatarData(dataNascimento),
                             biografia = null,
-                            fotoPerfil = null
+                            fotoPerfil = "https://www.pngall.com/wp-content/uploads/5/User-Profile-PNG-Image.png"
                         )
 
                         val call = RetrofitFactory.getUserService().saveUser(user)
@@ -288,7 +288,11 @@ fun TelaCadastro(navController: NavHostController?) {
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF1DA1F2),
+                    contentColor = Color.White
+                )
             ) {
                 Text("Cadastrar", fontWeight = FontWeight.Bold)
             }
