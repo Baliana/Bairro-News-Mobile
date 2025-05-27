@@ -32,6 +32,7 @@ import retrofit2.Callback
 import retrofit2.Response
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.ui.tooling.preview.Preview
 import br.senai.sp.jandira.bairronews.model.AuthenticationUser
 
 
@@ -48,7 +49,7 @@ fun TelaLogin(navController: NavHostController?) {
 
     fun fazerLogin() {
         val login = Login(email = email.trim(), senha = password.trim())
-        val call = RetrofitFactory().getUserService().loginUser(login)
+        val call = RetrofitFactory.getUserService().loginUser(login)
 
         call.enqueue(object : Callback<AuthenticationUser> {
             override fun onResponse(
@@ -151,8 +152,8 @@ fun TelaLogin(navController: NavHostController?) {
                 trailingIcon = {
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
                         Icon(
-                            imageVector = Icons.Default.Lock,
-                            contentDescription = "Alternar visibilidade"
+                            imageVector = if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                            contentDescription = if (passwordVisible) "Ocultar senha" else "Mostrar senha"
                         )
                     }
                 },
@@ -239,4 +240,11 @@ fun TelaLogin(navController: NavHostController?) {
             }
         }
     }
+}
+
+
+@Preview(showSystemUi = true)
+@Composable
+private fun TelaLoginPreview() {
+    TelaLogin(null)
 }

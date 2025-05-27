@@ -12,6 +12,9 @@
     <string name="senha_invalida">Sua senha está incorreta.</string>
     <string name="nao_conta">Não tem uma conta? </string>
     <string name="cadastrar">Cadastre-se</string>
+    <string name="login_invalido">E-mail ou senha incorretos.</string>
+    <string name="erro_conexao">Erro de conexão. Tente novamente mais tarde.</string>
+
 
     <!-- Cadastro -->
     <string name="cadastro_user">Cadastro</string>

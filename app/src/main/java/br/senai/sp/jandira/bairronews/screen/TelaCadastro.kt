@@ -34,6 +34,7 @@ import retrofit2.Response
 import java.util.Calendar
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import br.senai.sp.jandira.bairronews.model.AuthenticationUser
 
 
 fun formatarData(data: String): String {
@@ -260,10 +261,10 @@ fun TelaCadastro(navController: NavHostController?) {
                         )
 
                         val call = RetrofitFactory.getUserService().saveUser(user)
-                        call.enqueue(object : Callback<User> {
-                            override fun onResponse(call: Call<User>, response: Response<User>) {
+                        call.enqueue(object : Callback<AuthenticationUser> {
+                            override fun onResponse(call: Call<AuthenticationUser>, response: Response<AuthenticationUser>) {
                                 if (response.isSuccessful) {
-                                    val userResponse = response.body()
+                                    val userResponse = response.body()?.usuario // acessa o objeto `usuario`
                                     userResponse?.let {
                                         val sharedPref = context.getSharedPreferences("usuario", Context.MODE_PRIVATE)
                                         with(sharedPref.edit()) {
@@ -279,10 +280,11 @@ fun TelaCadastro(navController: NavHostController?) {
                                 }
                             }
 
-                            override fun onFailure(call: Call<User>, t: Throwable) {
+                            override fun onFailure(call: Call<AuthenticationUser>, t: Throwable) {
                                 cadastroError = "Erro de conexão: ${t.message}"
                             }
                         })
+
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
