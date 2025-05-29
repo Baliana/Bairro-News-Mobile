@@ -6,7 +6,7 @@ import com.google.gson.GsonBuilder
 
 object RetrofitFactory {
 
-    private const val BASE_URL = "http://10.107.144.10:8080/v1/bairro-news/"
+    private const val BASE_URL = "http://10.107.144.9:8080/v1/bairro-news/"
 
     private val gson = GsonBuilder()
         .serializeNulls()

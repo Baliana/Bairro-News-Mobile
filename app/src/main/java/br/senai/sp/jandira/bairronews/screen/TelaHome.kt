@@ -1,6 +1,7 @@
 package br.senai.sp.jandira.bairronews.screen
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -20,10 +21,9 @@ import br.senai.sp.jandira.bairronews.ui.theme.BairroNewsTheme
 fun TelaHome(navController: NavHostController?) {
     Column(modifier = Modifier.fillMaxSize()) {
 
-        // Topo
         Card(
             modifier = Modifier
-                .padding(top = 10.dp)
+                .padding(top = 50.dp)
                 .height(52.dp)
                 .fillMaxWidth()
         ) {
@@ -55,11 +55,15 @@ fun TelaHome(navController: NavHostController?) {
                         tint = Color.Black
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Icon(
-                        imageVector = Icons.Default.Send,
-                        contentDescription = "Enviar",
-                        tint = Color.Black
-                    )
+
+                    IconButton( onClick = { navController?.navigate("telanew") }) {
+                        Icon(
+                            imageVector = Icons.Default.Send,
+                            contentDescription = "Enviar",
+                            tint = Color.Black,
+                        )
+                    }
+
                     Spacer(modifier = Modifier.width(8.dp))
                     Icon(
                         imageVector = Icons.Default.Person,

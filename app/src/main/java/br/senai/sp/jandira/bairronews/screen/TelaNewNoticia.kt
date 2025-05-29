@@ -213,7 +213,7 @@ fun TelaAdd(navHostController: NavHostController?) {
                         horizontalArrangement = Arrangement.End
                     ) {
                         OutlinedButton(
-                            onClick = {},
+                            onClick = {navHostController?.navigate("home")},
                             colors = ButtonDefaults.outlinedButtonColors(
                                 containerColor = Color.White,
                                 contentColor = Color.Black
@@ -221,20 +221,20 @@ fun TelaAdd(navHostController: NavHostController?) {
                             border = BorderStroke(1.dp, Color.Black),
                             shape = RoundedCornerShape(12.dp)
                         ) {
-                            Text(text = "Publicar")
+                            Text(text = "Cancelar")
                         }
 
                         Spacer(modifier = Modifier.width(12.dp))
 
                         Button(
-                            onClick = {},
+                            onClick = {navHostController?.navigate("home")},
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = Color.Red,
                                 contentColor = Color.White
                             ),
                             shape = RoundedCornerShape(12.dp)
                         ) {
-                            Text(text = "Cancelar")
+                            Text(text = "Publicar")
                             Spacer(modifier = Modifier.width(5.dp))
                             Icon(
                                 imageVector = Icons.Filled.Send,

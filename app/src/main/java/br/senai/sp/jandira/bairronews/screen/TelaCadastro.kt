@@ -264,7 +264,7 @@ fun TelaCadastro(navController: NavHostController?) {
                         call.enqueue(object : Callback<AuthenticationUser> {
                             override fun onResponse(call: Call<AuthenticationUser>, response: Response<AuthenticationUser>) {
                                 if (response.isSuccessful) {
-                                    val userResponse = response.body()?.usuario // acessa o objeto `usuario`
+                                    val userResponse = response.body()?.usuario //
                                     userResponse?.let {
                                         val sharedPref = context.getSharedPreferences("usuario", Context.MODE_PRIVATE)
                                         with(sharedPref.edit()) {

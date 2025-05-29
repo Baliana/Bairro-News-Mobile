@@ -72,7 +72,7 @@ fun TelaLogin(navController: NavHostController?) {
                         editor.putString("user_foto", usuario.fotoPerfil ?: "")
                         editor.apply()
 
-                        navController?.navigate("home_user")
+                        navController?.navigate("home")
                     } else {
                         isError = true
                         errorMessage = responseBody?.messagem ?: "Erro desconhecido"
