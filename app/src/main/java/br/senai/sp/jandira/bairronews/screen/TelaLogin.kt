@@ -177,6 +177,7 @@ fun TelaLogin(navController: NavHostController?) {
 
             Button(
                 onClick = {
+
                     if (email.isBlank() || !email.contains("@")) {
                         isError = true
                         errorMessage = context.getString(R.string.email_invalido)
@@ -185,6 +186,7 @@ fun TelaLogin(navController: NavHostController?) {
                         errorMessage = context.getString(R.string.senha_invalida)
                     } else {
                         fazerLogin()
+                        navController?.navigate("home")
                     }
                 },
                 modifier = Modifier.fillMaxWidth().height(50.dp),

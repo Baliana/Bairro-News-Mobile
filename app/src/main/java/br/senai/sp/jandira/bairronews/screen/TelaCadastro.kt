@@ -273,7 +273,7 @@ fun TelaCadastro(navController: NavHostController?) {
                                             putString("email", it.email)
                                             apply()
                                         }
-                                        navController?.navigate("home")
+                                        navController?.navigate("login")
                                     }
                                 } else {
                                     cadastroError = "Erro ao cadastrar: ${response.code()}"

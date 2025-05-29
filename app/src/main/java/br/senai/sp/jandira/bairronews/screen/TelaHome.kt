@@ -14,7 +14,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import br.senai.sp.jandira.bairronews.ui.theme.BairroNewsTheme // certifique-se de ter esse tema no seu projeto
+import br.senai.sp.jandira.bairronews.ui.theme.BairroNewsTheme
 
 @Composable
 fun TelaHome(navController: NavHostController?) {
@@ -23,10 +23,9 @@ fun TelaHome(navController: NavHostController?) {
         // Topo
         Card(
             modifier = Modifier
-                .padding(top = 65.dp)
+                .padding(top = 10.dp)
                 .height(52.dp)
                 .fillMaxWidth()
-
         ) {
             Row(
                 modifier = Modifier
@@ -41,8 +40,7 @@ fun TelaHome(navController: NavHostController?) {
                         contentDescription = "Mais opções",
                         tint = Color.Black
                     )
-                    Spacer(modifier = Modifier
-                        .width(8.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         fontSize = 18.sp,
                         text = "Bairro News",
@@ -56,8 +54,7 @@ fun TelaHome(navController: NavHostController?) {
                         contentDescription = "Pesquisar",
                         tint = Color.Black
                     )
-                    Spacer(modifier = Modifier
-                        .width(8.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
                     Icon(
                         imageVector = Icons.Default.Send,
                         contentDescription = "Enviar",
@@ -78,9 +75,9 @@ fun TelaHome(navController: NavHostController?) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(220.dp)
+                .height(200.dp)
                 .padding(horizontal = 16.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.DarkGray), // Fundo temporário
+            colors = CardDefaults.cardColors(containerColor = Color.DarkGray),
             shape = MaterialTheme.shapes.medium
         ) {
             Box(
@@ -90,7 +87,6 @@ fun TelaHome(navController: NavHostController?) {
                 contentAlignment = Alignment.BottomStart
             ) {
                 Column {
-
                     Text(
                         text = "DESTAQUE",
                         color = Color.White,
@@ -103,7 +99,6 @@ fun TelaHome(navController: NavHostController?) {
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    // Título
                     Text(
                         text = "Novo centro comunitário será inaugurado no próximo mês",
                         color = Color.White,
@@ -113,7 +108,6 @@ fun TelaHome(navController: NavHostController?) {
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    // Autor e tempo
                     Text(
                         text = "Hoje, 10:45",
                         color = Color.LightGray,
@@ -122,14 +116,15 @@ fun TelaHome(navController: NavHostController?) {
                 }
             }
         }
-        Spacer(modifier = Modifier.height(45.dp))
+
+        Spacer(modifier = Modifier.height(35.dp))
 
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(220.dp)
+                .height(130.dp)
                 .padding(horizontal = 16.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.DarkGray), // Fundo temporário
+            colors = CardDefaults.cardColors(containerColor = Color.DarkGray),
             shape = MaterialTheme.shapes.medium
         ) {
             Box(
@@ -139,11 +134,10 @@ fun TelaHome(navController: NavHostController?) {
                 contentAlignment = Alignment.BottomStart
             ) {
                 Column {
-
                     Text(
                         text = "DESTAQUE",
                         color = Color.White,
-                        fontSize = 8.sp,
+                        fontSize = 6.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier
                             .background(Color.Red, shape = MaterialTheme.shapes.small)
@@ -152,7 +146,6 @@ fun TelaHome(navController: NavHostController?) {
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    // Título
                     Text(
                         text = "Novo centro comunitário será inaugurado no próximo mês",
                         color = Color.White,
@@ -162,7 +155,6 @@ fun TelaHome(navController: NavHostController?) {
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    // Autor e tempo
                     Text(
                         text = "Hoje, 10:45",
                         color = Color.LightGray,
@@ -172,6 +164,112 @@ fun TelaHome(navController: NavHostController?) {
             }
         }
 
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(2.dp)
+                .padding(horizontal = 16.dp)
+                .background(Color(0xFFE73030))
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Card(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(220.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.DarkGray),
+                shape = MaterialTheme.shapes.medium
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    contentAlignment = Alignment.BottomStart
+                ) {
+                    Column {
+                        Text(
+                            text = "Saúde",
+                            color = Color.White,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier
+                                .background(Color.Red, shape = MaterialTheme.shapes.small)
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Text(
+                            text = "Novo centro comunitário será inaugurado no próximo mês",
+                            color = Color.White,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Text(
+                            text = "Hoje, 10:45",
+                            color = Color.LightGray,
+                            fontSize = 8.sp
+                        )
+                    }
+                }
+            }
+
+            Card(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(220.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.DarkGray),
+                shape = MaterialTheme.shapes.medium
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    contentAlignment = Alignment.BottomStart
+                ) {
+                    Column {
+                        Text(
+                            text = "Educação",
+                            color = Color.White,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier
+                                .background(Color.Red, shape = MaterialTheme.shapes.small)
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Text(
+                            text = "Nova escola será inaugurada ainda este ano",
+                            color = Color.White,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Text(
+                            text = "Hoje, 09:30",
+                            color = Color.LightGray,
+                            fontSize = 8.sp
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 
