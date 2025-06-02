@@ -1,29 +1,94 @@
 package br.senai.sp.jandira.bairronews.screen
 
+import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import br.senai.sp.jandira.bairronews.R
+import br.senai.sp.jandira.bairronews.components.NoticiaCard // Importe o seu NoticiaCard
+import br.senai.sp.jandira.bairronews.model.NoticiaItem
+import br.senai.sp.jandira.bairronews.model.NoticiaResponse
+import br.senai.sp.jandira.bairronews.service.RetrofitFactory
 import br.senai.sp.jandira.bairronews.ui.theme.BairroNewsTheme
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TelaHome(navController: NavHostController?) {
+    // Variável para armazenar a lista de notícias
+    var noticiasList by remember { mutableStateOf(listOf<NoticiaItem>()) }
+    val context = LocalContext.current
+
+    // Função para buscar as notícias da API
+    fun fetchNoticias() {
+        val call = RetrofitFactory().getNoticiaService().listAllNoticias()
+
+        call.enqueue(object : Callback<NoticiaResponse> {
+            override fun onResponse(call: Call<NoticiaResponse>, response: Response<NoticiaResponse>) {
+                if (response.isSuccessful) {
+                    val responseBody = response.body()
+                    if (responseBody != null && responseBody.status) {
+                        noticiasList = responseBody.noticias ?: listOf()
+                        Log.d("TelaHome", "Notícias carregadas: ${noticiasList.size}")
+                    } else {
+                        Log.e("TelaHome", "Erro na resposta da API: ${responseBody?.mensagem}")
+                        // Exibir mensagem de erro para o usuário
+                    }
+                } else {
+                    Log.e("TelaHome", "Resposta não bem-sucedida: ${response.code()}")
+                    // Exibir mensagem de erro para o usuário
+                }
+            }
+
+            override fun onFailure(call: Call<NoticiaResponse>, t: Throwable) {
+                Log.e("TelaHome", "Erro na requisição: ${t.message}")
+                // Exibir mensagem de erro de conexão para o usuário
+            }
+        })
+    }
+
+    // Efeito colateral para buscar as notícias quando o componente é criado
+    LaunchedEffect(Unit) {
+        fetchNoticias()
+    }
+
+    // Função para deslogar
+    fun fazerLogout() {
+        val sharedPrefs = context.getSharedPreferences("user", Context.MODE_PRIVATE)
+        val editor = sharedPrefs.edit()
+        editor.clear() // Limpa todos os dados do usuário
+        editor.apply() // Aplica as mudanças
+        navController?.navigate("login") {
+            // Limpa o back stack para que o usuário não volte para a Home
+            popUpTo("home") { inclusive = true }
+        }
+    }
+
     Column(modifier = Modifier.fillMaxSize()) {
 
+        // Top Bar (Header)
         Card(
             modifier = Modifier
-                .padding(top = 50.dp)
+                .padding(top = 50.dp) // Ajuste conforme a necessidade do status bar
                 .height(52.dp)
                 .fillMaxWidth()
         ) {
@@ -49,14 +114,16 @@ fun TelaHome(navController: NavHostController?) {
                     )
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.Search,
-                        contentDescription = "Pesquisar",
-                        tint = Color.Black
-                    )
+                    IconButton(onClick = { /* Implementar pesquisa */ }) {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = "Pesquisar",
+                            tint = Color.Black
+                        )
+                    }
                     Spacer(modifier = Modifier.width(8.dp))
 
-                    IconButton( onClick = { navController?.navigate("telanew") }) {
+                    IconButton(onClick = { navController?.navigate("telanew") }) {
                         Icon(
                             imageVector = Icons.Default.Send,
                             contentDescription = "Enviar",
@@ -65,214 +132,60 @@ fun TelaHome(navController: NavHostController?) {
                     }
 
                     Spacer(modifier = Modifier.width(8.dp))
-                    Icon(
-                        imageVector = Icons.Default.Person,
-                        contentDescription = "Usuário",
-                        tint = Color.Black
-                    )
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(45.dp))
-
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(200.dp)
-                .padding(horizontal = 16.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.DarkGray),
-            shape = MaterialTheme.shapes.medium
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                contentAlignment = Alignment.BottomStart
-            ) {
-                Column {
-                    Text(
-                        text = "DESTAQUE",
-                        color = Color.White,
-                        fontSize = 8.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier
-                            .background(Color.Red, shape = MaterialTheme.shapes.small)
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Text(
-                        text = "Novo centro comunitário será inaugurado no próximo mês",
-                        color = Color.White,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Text(
-                        text = "Hoje, 10:45",
-                        color = Color.LightGray,
-                        fontSize = 12.sp
-                    )
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(35.dp))
-
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(130.dp)
-                .padding(horizontal = 16.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.DarkGray),
-            shape = MaterialTheme.shapes.medium
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                contentAlignment = Alignment.BottomStart
-            ) {
-                Column {
-                    Text(
-                        text = "DESTAQUE",
-                        color = Color.White,
-                        fontSize = 6.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier
-                            .background(Color.Red, shape = MaterialTheme.shapes.small)
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Text(
-                        text = "Novo centro comunitário será inaugurado no próximo mês",
-                        color = Color.White,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Text(
-                        text = "Hoje, 10:45",
-                        color = Color.LightGray,
-                        fontSize = 12.sp
-                    )
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(2.dp)
-                .padding(horizontal = 16.dp)
-                .background(Color(0xFFE73030))
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Card(
-                modifier = Modifier
-                    .weight(1f)
-                    .height(220.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.DarkGray),
-                shape = MaterialTheme.shapes.medium
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp),
-                    contentAlignment = Alignment.BottomStart
-                ) {
-                    Column {
-                        Text(
-                            text = "Saúde",
-                            color = Color.White,
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier
-                                .background(Color.Red, shape = MaterialTheme.shapes.small)
-                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                    IconButton(onClick = { navController?.navigate("perfil") /* Navegar para tela de perfil */ }) {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = "Usuário",
+                            tint = Color.Black
                         )
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Text(
-                            text = "Novo centro comunitário será inaugurado no próximo mês",
-                            color = Color.White,
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Text(
-                            text = "Hoje, 10:45",
-                            color = Color.LightGray,
-                            fontSize = 8.sp
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    // Botão de Logout
+                    IconButton(onClick = { fazerLogout() }) {
+                        Icon(
+                            imageVector = Icons.Default.ExitToApp, // Ícone de sair/deslogar
+                            contentDescription = "Sair",
+                            tint = Color.Black
                         )
                     }
                 }
             }
+        }
 
-            Card(
-                modifier = Modifier
-                    .weight(1f)
-                    .height(220.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.DarkGray),
-                shape = MaterialTheme.shapes.medium
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp),
-                    contentAlignment = Alignment.BottomStart
-                ) {
-                    Column {
-                        Text(
-                            text = "Educação",
-                            color = Color.White,
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier
-                                .background(Color.Red, shape = MaterialTheme.shapes.small)
-                                .padding(horizontal = 8.dp, vertical = 4.dp)
-                        )
+        Spacer(modifier = Modifier.height(16.dp)) // Espaçamento entre a barra superior e o conteúdo
 
-                        Spacer(modifier = Modifier.height(8.dp))
+        // LazyColumn para exibir as notícias
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp), // Padding lateral para toda a LazyColumn
+            verticalArrangement = Arrangement.spacedBy(16.dp) // Espaçamento entre os itens
+        ) {
+            // O primeiro item pode ser um destaque ou o primeiro da lista
+            // Se você quer um "destaque" fixo, pode pegar o primeiro item da lista de notícias
+            // e exibi-lo com um modificador diferente, se houver um design específico para destaque.
+            // Por simplicidade, vamos tratar todos como NoticiaCard por enquanto.
 
-                        Text(
-                            text = "Nova escola será inaugurada ainda este ano",
-                            color = Color.White,
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Text(
-                            text = "Hoje, 09:30",
-                            color = Color.LightGray,
-                            fontSize = 8.sp
-                        )
-                    }
+            items(noticiasList) { noticia ->
+                NoticiaCard(noticia = noticia) { id ->
+                    // Ação ao clicar na notícia (navegar para detalhes, por exemplo)
+                    navController?.navigate("noticiaDetalhes/${id}")
                 }
             }
+            // Se você precisar de um Card de destaque maior no topo,
+            // pode fazer algo como:
+            // item {
+            //     if (noticiasList.isNotEmpty()) {
+            //         NoticiaCard(noticia = noticiasList.first(), modifier = Modifier.height(250.dp)) { id ->
+            //             navController?.navigate("noticiaDetalhes/${id}")
+            //         }
+            //     }
+            // }
+            // items(noticiasList.drop(1)) { noticia -> // Para os demais itens
+            //     NoticiaCard(noticia = noticia) { id ->
+            //         navController?.navigate("noticiaDetalhes/${id}")
+            //     }
+            // }
         }
     }
 }

@@ -36,6 +36,9 @@ class MainActivity : ComponentActivity() {
                     composable("telanew") {
                         TelaAdd(navController)
                     }
+                    composable("server_offline") {
+                        TelaServidorIndisponivel(navController)
+                    }
                 }
             }
         }

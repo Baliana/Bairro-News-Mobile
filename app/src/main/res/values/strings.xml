@@ -29,4 +29,7 @@
     <string name="concordar_termos">Ao se cadastrar, você concorda com nossos</string>
     <string name="termos">Termos de Uso</string>
     <string name="politica">Política de Privacidade</string>
+
+    <string name="login_invalido_generico">login invalido</string>
+
 </resources>

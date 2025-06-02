@@ -200,19 +200,25 @@ fun TelaCadastro(navController: NavHostController?) {
             Text(text = "Data de nascimento", fontSize = 12.sp)
             OutlinedTextField(
                 value = dataNascimento,
-                onValueChange = {},
+                onValueChange = {
+                    dataNascimento = it
+                    dataError = null
+                },
                 label = { Text("Data de nascimento") },
-                leadingIcon = { Icon(Icons.Default.DateRange, null) },
+                placeholder = { Text("DD/MM/AAAA") },
+                leadingIcon = {
+                    IconButton(onClick = { datePickerDialog.show() }) {
+                        Icon(Icons.Default.DateRange, contentDescription = "Selecionar data")
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp)
-                    .clickable { datePickerDialog.show() },
+                    .height(56.dp),
                 shape = RoundedCornerShape(12.dp),
                 singleLine = true,
-                enabled = false,
-                readOnly = true,
                 isError = dataError != null
             )
+
             dataError?.let {
                 Text(it, color = Color.Red, fontSize = 12.sp)
             }
@@ -260,7 +266,7 @@ fun TelaCadastro(navController: NavHostController?) {
                             fotoPerfil = "https://www.pngall.com/wp-content/uploads/5/User-Profile-PNG-Image.png"
                         )
 
-                        val call = RetrofitFactory.getUserService().saveUser(user)
+                        val call = RetrofitFactory().getUserService().saveUser(user)
                         call.enqueue(object : Callback<AuthenticationUser> {
                             override fun onResponse(call: Call<AuthenticationUser>, response: Response<AuthenticationUser>) {
                                 if (response.isSuccessful) {
