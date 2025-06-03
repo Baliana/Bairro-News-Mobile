@@ -159,33 +159,14 @@ fun TelaHome(navController: NavHostController?) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 16.dp), // Padding lateral para toda a LazyColumn
-            verticalArrangement = Arrangement.spacedBy(16.dp) // Espaçamento entre os itens
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // O primeiro item pode ser um destaque ou o primeiro da lista
-            // Se você quer um "destaque" fixo, pode pegar o primeiro item da lista de notícias
-            // e exibi-lo com um modificador diferente, se houver um design específico para destaque.
-            // Por simplicidade, vamos tratar todos como NoticiaCard por enquanto.
-
             items(noticiasList) { noticia ->
                 NoticiaCard(noticia = noticia) { id ->
                     // Ação ao clicar na notícia (navegar para detalhes, por exemplo)
                     navController?.navigate("noticiaDetalhes/${id}")
                 }
             }
-            // Se você precisar de um Card de destaque maior no topo,
-            // pode fazer algo como:
-            // item {
-            //     if (noticiasList.isNotEmpty()) {
-            //         NoticiaCard(noticia = noticiasList.first(), modifier = Modifier.height(250.dp)) { id ->
-            //             navController?.navigate("noticiaDetalhes/${id}")
-            //         }
-            //     }
-            // }
-            // items(noticiasList.drop(1)) { noticia -> // Para os demais itens
-            //     NoticiaCard(noticia = noticia) { id ->
-            //         navController?.navigate("noticiaDetalhes/${id}")
-            //     }
-            // }
         }
     }
 }

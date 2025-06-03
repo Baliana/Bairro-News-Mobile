@@ -4,9 +4,11 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import br.senai.sp.jandira.bairronews.screen.*
 import br.senai.sp.jandira.bairronews.ui.theme.BairroNewsTheme
 
@@ -33,8 +35,16 @@ class MainActivity : ComponentActivity() {
                     composable("home") {
                         TelaHome(navController)
                     }
-                    composable("telanew") {
-                        TelaAdd(navController)
+                    //composable("telanew") {
+                    //    TelaAdd(navController)
+                    //}
+                    // Nova rota para a tela de detalhes da notícia
+                    composable(
+                        "noticiaDetalhes/{noticiaId}", // O {noticiaId} indica um argumento
+                        arguments = listOf(navArgument("noticiaId") { type = NavType.IntType })
+                    ) { backStackEntry ->
+                        val noticiaId = backStackEntry.arguments?.getInt("noticiaId")
+                        TelaDetalheNoticia(navController = navController, noticiaId = noticiaId)
                     }
                     composable("server_offline") {
                         TelaServidorIndisponivel(navController)

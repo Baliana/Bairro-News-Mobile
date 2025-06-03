@@ -24,6 +24,7 @@ import br.senai.sp.jandira.bairronews.model.Categoria
 import br.senai.sp.jandira.bairronews.model.Endereco
 import coil.compose.rememberAsyncImagePainter
 import java.time.LocalDate
+import java.time.OffsetDateTime // Importar OffsetDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.util.Locale
@@ -38,11 +39,18 @@ fun NoticiaCard(noticia: NoticiaItem, modifier: Modifier = Modifier, onClick: (I
         }
 
     val dataFormatada = try {
-        val parsedDate = LocalDate.parse(noticia.dataPostagem, DateTimeFormatter.ISO_LOCAL_DATE)
-        parsedDate.format(DateTimeFormatter.ofPattern("dd 'de' MMMM 'de' yyyy", Locale("pt", "BR")))
+        // Tenta parsear como OffsetDateTime (para o 'Z' final) e depois converter para LocalDate
+        val parsedDateTime = OffsetDateTime.parse(noticia.dataPostagem, DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+        parsedDateTime.toLocalDate().format(DateTimeFormatter.ofPattern("dd 'de' MMMM 'de' yyyy", Locale("pt", "BR")))
     } catch (e: DateTimeParseException) {
-        Log.e("NoticiaCard", "Erro ao parsear data: ${noticia.dataPostagem} - ${e.message}")
-        "Data Indisponível"
+        // Se falhar, tenta como LocalDate (caso a API não envie a parte da hora/fuso em alguns casos)
+        try {
+            val parsedDate = LocalDate.parse(noticia.dataPostagem, DateTimeFormatter.ISO_LOCAL_DATE)
+            parsedDate.format(DateTimeFormatter.ofPattern("dd 'de' MMMM 'de' yyyy", Locale("pt", "BR")))
+        } catch (e2: DateTimeParseException) {
+            Log.e("NoticiaCard", "Erro ao parsear data: ${noticia.dataPostagem} - ${e2.message}")
+            "Data Indisponível"
+        }
     } catch (e: Exception) {
         Log.e("NoticiaCard", "Erro inesperado ao formatar data: ${e.message}")
         "Data Indisponível"
@@ -55,7 +63,6 @@ fun NoticiaCard(noticia: NoticiaItem, modifier: Modifier = Modifier, onClick: (I
             "Geral"
         }
 
-    // Endereço reduzido: Mostrar apenas localidade/bairro/displayName se disponível
     val enderecoReduzido = if (noticia.endereco != null) {
         when {
             !noticia.endereco.displayName.isNullOrEmpty() -> noticia.endereco.displayName
@@ -73,38 +80,36 @@ fun NoticiaCard(noticia: NoticiaItem, modifier: Modifier = Modifier, onClick: (I
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .height(200.dp) // Altura fixa, ajuste se precisar de flexibilidade
-            .clickable { noticia.id?.let { onClick(it) } }, // Adiciona o clique no card
-        colors = CardDefaults.cardColors(containerColor = Color.DarkGray), // Use DarkGray ou cor da sua preferência
+            .height(200.dp)
+            .clickable { noticia.id?.let { onClick(it) } },
+        colors = CardDefaults.cardColors(containerColor = Color.DarkGray),
         shape = MaterialTheme.shapes.medium
     ) {
         Box(
             modifier = Modifier.fillMaxSize(),
         ) {
-            // Imagem de fundo
             Image(
                 painter = rememberAsyncImagePainter(imageUrl),
                 contentDescription = noticia.titulo,
-                contentScale = ContentScale.Crop, // Garante que a imagem preencha o Box
+                contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()
             )
 
-            // Overlay para texto
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.4f)) // Overlay semi-transparente
+                    .background(Color.Black.copy(alpha = 0.4f))
             )
 
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp), // Padding para o conteúdo de texto
-                verticalArrangement = Arrangement.Bottom, // Alinha o conteúdo na parte inferior
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.Bottom,
                 horizontalAlignment = Alignment.Start
             ) {
                 Text(
-                    text = categoriaNome.uppercase(), // Categoria
+                    text = categoriaNome.uppercase(),
                     color = Color.White,
                     fontSize = 8.sp,
                     fontWeight = FontWeight.Bold,
@@ -116,23 +121,22 @@ fun NoticiaCard(noticia: NoticiaItem, modifier: Modifier = Modifier, onClick: (I
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
-                    text = noticia.titulo, // Título da notícia
+                    text = noticia.titulo,
                     color = Color.White,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
-                    maxLines = 2, // Limita o título a 2 linhas
-                    overflow = TextOverflow.Ellipsis // Adiciona "..." se o texto for muito longo
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
-                    text = dataFormatada, // Data formatada
+                    text = dataFormatada,
                     color = Color.LightGray,
                     fontSize = 12.sp
                 )
 
-                // Adiciona o endereço reduzido, se disponível
                 if (!enderecoReduzido.isNullOrEmpty()) {
                     Text(
                         text = enderecoReduzido,
@@ -144,21 +148,19 @@ fun NoticiaCard(noticia: NoticiaItem, modifier: Modifier = Modifier, onClick: (I
                 }
             }
         }
-
     }
 }
-// O Preview deve ser uma declaração de nível superior (diretamente dentro do arquivo, não aninhado)
+
 @Preview(showBackground = true)
 @Composable
 fun NoticiaCardPreview() {
-    // Exemplo de NoticiaItem para o preview
     val sampleNoticiaComTudo = NoticiaItem(
         id = 1,
         titulo = "Novo centro comunitário será inaugurado em Breve com muitas novidades para a comunidade",
         conteudo = "Conteúdo da notícia (não visível neste card)",
-        dataPostagem = "2024-05-28",
+        dataPostagem = "2024-05-28T00:00:00.000Z", // Exemplo com o formato completo
         categorias = listOf(Categoria(id = 1, nome = "Esporte", descricao = "Esporte da comunidade", sigla = "ESP")),
-        urlsMidia = listOf(br.senai.sp.jandira.bairronews.model.UrlMidiaItem(urlMidia = "https://example.com/image.jpg")),
+        urlsMidia = listOf(br.senai.sp.jandira.bairronews.model.UrlMidiaItem(urlMidia = "https://via.placeholder.com/600x400/FF0000/FFFFFF?text=Placeholder")),
         endereco = Endereco(cep = "00000-000", lat = -23.0, lon = -46.0, displayName = "Rua das Flores, 123 - Centro, São Paulo")
     )
 
@@ -166,13 +168,13 @@ fun NoticiaCardPreview() {
         id = 2,
         titulo = "Reunião de moradores para discutir segurança",
         conteudo = "Conteúdo da notícia (não visível neste card)",
-        dataPostagem = "2024-05-29",
+        dataPostagem = "2024-05-29T10:30:00.000Z",
         categorias = listOf(Categoria(id = 2, nome = "Segurança", descricao = "Segurança pública", sigla = "SEG")),
-        urlsMidia = emptyList(), // Sem mídia
-        endereco = null // Sem endereço
+        urlsMidia = emptyList(),
+        endereco = null
     )
 
-    Column { // Agrupa os previews se você quiser ver mais de um
+    Column {
         NoticiaCard(noticia = sampleNoticiaComTudo) { /* no-op */ }
         Spacer(modifier = Modifier.height(16.dp))
         NoticiaCard(noticia = sampleNoticiaSemMidiaSemEndereco) { /* no-op */ }

@@ -42,9 +42,6 @@ fun TelaDecisaoInicial(navController: NavHostController) {
                         }
                     }
                 } else {
-                    // API respondeu, mas com erro (ex: 404, 500) - ainda indica que o servidor está "ativo"
-                    // mas pode haver um problema com o endpoint específico ou o backend.
-                    // Para fins de "servidor não no ar", vamos considerar apenas falha de conexão.
                     Log.e("TelaDecisaoInicial", "API respondeu com erro HTTP: ${response.code()} - ${response.message()}")
                     Log.d("TelaDecisaoInicial", "Servidor pode estar no ar, mas endpoint inacessível. Navegando para 'server_offline'.")
                     navController.navigate("server_offline") {
