@@ -15,5 +15,6 @@ data class NoticiaItem(
     val user: User? = null, // Pode retornar o objeto User completo
     @SerializedName("tbl_usuario_id")
     val tblUsuarioId: Int? = null,
-    val endereco: Endereco?
+    val endereco: Endereco?,
+    val comentarios: List<Comentario>? = null
 )

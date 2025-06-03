@@ -9,6 +9,7 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Headers
 import retrofit2.http.POST
+import retrofit2.http.Path
 
 interface NoticiaService {
 
@@ -19,6 +20,10 @@ interface NoticiaService {
     // Faz uma requisição GET para o endpoint para retorna todos as noticias disponíveis na API
     @GET("noticia")
     fun listAllNoticias(): Call<NoticiaResponse>
+
+    @GET("noticia/{id}")
+    fun listNoticia(@Path("") id: Int): Call<NoticiaResponse>
+
     @GET("categoria")
     fun listAllCategorias(): Call<CategoriaResponse>
 
