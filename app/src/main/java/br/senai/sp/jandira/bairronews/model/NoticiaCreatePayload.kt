@@ -5,12 +5,18 @@ import com.google.gson.annotations.SerializedName
 data class NoticiaCreatePayload(
     val titulo: String,
     val conteudo: String,
+
     @SerializedName("tbl_usuario_id")
     val tblUsuarioId: Int,
-    val endereco: String, // Use o Endereco que criamos
+
+    @SerializedName("tbl_endereco_id")
+    val tblEnderecoId: Int, // ✅ Correção aqui: usamos o ID do endereço, não a string
+
     @SerializedName("urls_midia")
-    val urlsMidia: List<String>? = null, // Array de Strings de URL para o envio
-    val categorias: List<Int>, // Array de IDs de categorias
+    val urlsMidia: List<String>? = null,
+
+    val categorias: List<Int>,
+
     @SerializedName("data_postagem")
-    val dataPostagem: String? = null // YYYY-MM-DD
+    val dataPostagem: String? = null // Formato: YYYY-MM-DD
 )
