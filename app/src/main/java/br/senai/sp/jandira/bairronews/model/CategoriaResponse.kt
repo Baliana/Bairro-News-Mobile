@@ -7,5 +7,6 @@ data class CategoriaResponse(
     @SerializedName("status_code")
     val statusCode: Int,
     val items: Int,
+    val messagem: String,
     val categorias: List<Categoria>
 )
