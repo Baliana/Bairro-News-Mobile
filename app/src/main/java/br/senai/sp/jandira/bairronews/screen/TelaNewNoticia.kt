@@ -1,6 +1,5 @@
 package br.senai.sp.jandira.bairronews.screen
 
-import android.content.Context
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -20,6 +19,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import br.senai.sp.jandira.bairronews.model.NoticiaCreatePayload
 
 @Composable
 fun TelaAdd(navHostController: NavHostController?) {
@@ -27,6 +27,7 @@ fun TelaAdd(navHostController: NavHostController?) {
     val categoria = remember { mutableStateOf("") }
     val resumo = remember { mutableStateOf("") }
     val conteudo = remember { mutableStateOf("") }
+    val endereco = remember { mutableStateOf("") }
     val imagemUrl = remember { mutableStateOf("") }
     val autor = remember { mutableStateOf("") }
     val isError = remember { mutableStateOf(false) }
@@ -55,13 +56,13 @@ fun TelaAdd(navHostController: NavHostController?) {
                 fontSize = 25.sp,
                 color = Color.White,
                 modifier = Modifier
-                    .padding(top = 25.dp)
+                    .padding(top = 5.dp)
             )
 
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 35.dp),
+                    .padding(top = 5.dp),
                 shape = RoundedCornerShape(16.dp)
             ) {
                 Column(
@@ -71,7 +72,7 @@ fun TelaAdd(navHostController: NavHostController?) {
 
                     // Título *
                     Text(
-                        modifier = Modifier.padding(top = 24.dp),
+                        modifier = Modifier.padding(top = 5.dp),
                         text = "Título *",
                         fontSize = 12.sp
                     )
@@ -84,7 +85,7 @@ fun TelaAdd(navHostController: NavHostController?) {
                         label = { Text(text = "Digite o título da notícia") },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(46.dp),
+                            .height(66.dp),
                         singleLine = true,
                         shape = RoundedCornerShape(12.dp),
                         isError = isError.value
@@ -92,7 +93,7 @@ fun TelaAdd(navHostController: NavHostController?) {
 
                     // Categoria *
                     Text(
-                        modifier = Modifier.padding(top = 30.dp),
+                        modifier = Modifier.padding(top = 20.dp),
                         text = "Categoria *",
                         fontSize = 12.sp
                     )
@@ -105,7 +106,7 @@ fun TelaAdd(navHostController: NavHostController?) {
                         label = { Text(text = "Categoria") },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(46.dp),
+                            .height(66.dp),
                         singleLine = true,
                         shape = RoundedCornerShape(12.dp),
                         isError = isError.value
@@ -113,7 +114,7 @@ fun TelaAdd(navHostController: NavHostController?) {
 
                     // Resumo *
                     Text(
-                        modifier = Modifier.padding(top = 34.dp),
+                        modifier = Modifier.padding(top = 24.dp),
                         text = "Resumo *",
                         fontSize = 12.sp
                     )
@@ -126,7 +127,7 @@ fun TelaAdd(navHostController: NavHostController?) {
                         label = { Text(text = "Digite um breve resumo da notícia") },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(46.dp),
+                            .height(66.dp),
                         singleLine = true,
                         shape = RoundedCornerShape(12.dp),
                         isError = isError.value
@@ -134,7 +135,7 @@ fun TelaAdd(navHostController: NavHostController?) {
 
                     // Conteúdo *
                     Text(
-                        modifier = Modifier.padding(top = 25.dp),
+                        modifier = Modifier.padding(top = 15.dp),
                         text = "Conteúdo *",
                         fontSize = 12.sp
                     )
@@ -160,7 +161,7 @@ fun TelaAdd(navHostController: NavHostController?) {
 
                     // URL da imagem *
                     Text(
-                        modifier = Modifier.padding(top = 20.dp),
+                        modifier = Modifier.padding(top = 10.dp),
                         text = "URL da imagem *",
                         fontSize = 12.sp
                     )
@@ -173,7 +174,7 @@ fun TelaAdd(navHostController: NavHostController?) {
                         label = { Text(text = "https://example.com/image.jpg") },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(45.dp),
+                            .height(65.dp),
                         singleLine = true,
                         shape = RoundedCornerShape(12.dp),
                         isError = isError.value
@@ -186,7 +187,7 @@ fun TelaAdd(navHostController: NavHostController?) {
 
                     // Seu nome *
                     Text(
-                        modifier = Modifier.padding(top = 24.dp),
+                        modifier = Modifier.padding(top = 14.dp),
                         text = "Seu nome *",
                         fontSize = 12.sp
                     )
@@ -199,7 +200,7 @@ fun TelaAdd(navHostController: NavHostController?) {
                         label = { Text(text = "Digite seu nome") },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(45.dp),
+                            .height(65.dp),
                         singleLine = true,
                         shape = RoundedCornerShape(12.dp),
                         isError = isError.value
@@ -209,7 +210,7 @@ fun TelaAdd(navHostController: NavHostController?) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = 44.dp),
+                            .padding(top = 24.dp),
                         horizontalArrangement = Arrangement.End
                     ) {
                         OutlinedButton(
@@ -227,7 +228,39 @@ fun TelaAdd(navHostController: NavHostController?) {
                         Spacer(modifier = Modifier.width(12.dp))
 
                         Button(
-                            onClick = {navHostController?.navigate("home")},
+                            onClick = {
+                                val camposPreenchidos = titulo.value.isNotBlank() &&
+                                        categoria.value.isNotBlank() &&
+                                        resumo.value.isNotBlank() &&
+                                        conteudo.value.isNotBlank() &&
+                                        imagemUrl.value.isNotBlank() &&
+                                        autor.value.isNotBlank()
+
+                                val categoriaLimpa = categoria.value.trim().lowercase()
+                                val categoriasSelecionadas: List<Int> = when (categoriaLimpa) {
+                                    "alta relevancia" -> listOf(1)
+                                    "media relevancia" -> listOf(2)
+                                    "baixa relevancia" -> listOf(3)
+                                    else -> listOf()
+                                }
+
+                                if (camposPreenchidos && categoriasSelecionadas.isNotEmpty()) {
+                                    val noticia = NoticiaCreatePayload(
+                                        titulo = titulo.value,
+                                        conteudo = conteudo.value,
+                                        categorias = categoriasSelecionadas,
+                                        tblUsuarioId = 1,
+                                        endereco = endereco.value,
+                                        urlsMidia = listOf(imagemUrl.value),
+                                        dataPostagem = java.time.LocalDateTime.now().toString()
+                                    )
+
+                                    navHostController?.navigate("home")
+                                } else {
+                                    isError.value = true
+                                }
+
+                            },
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = Color.Red,
                                 contentColor = Color.White
@@ -241,6 +274,7 @@ fun TelaAdd(navHostController: NavHostController?) {
                                 contentDescription = null
                             )
                         }
+
                     }
                 }
             }

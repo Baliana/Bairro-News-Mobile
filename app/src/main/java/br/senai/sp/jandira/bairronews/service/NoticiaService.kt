@@ -16,10 +16,10 @@ interface NoticiaService {
     @POST("noticia")
     fun saveNoticia(@Body payload: NoticiaCreatePayload): Call<NoticiaItem>
 
+    // Faz uma requisição GET para o endpoint para retorna todos as noticias disponíveis na API
     @GET("noticia")
     fun listAllNoticias(): Call<NoticiaResponse>
     @GET("categoria")
     fun listAllCategorias(): Call<CategoriaResponse>
-    @GET("/status")
-    fun pingApi(): Call<Void>
+
 }
