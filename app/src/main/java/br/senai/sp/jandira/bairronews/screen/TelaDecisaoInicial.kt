@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavHostController
 import br.senai.sp.jandira.bairronews.model.NoticiaResponse // Importe NoticiaResponse para o callback
 import br.senai.sp.jandira.bairronews.service.RetrofitFactory
@@ -61,3 +62,4 @@ fun TelaDecisaoInicial(navController: NavHostController) {
         })
     }
 }
+

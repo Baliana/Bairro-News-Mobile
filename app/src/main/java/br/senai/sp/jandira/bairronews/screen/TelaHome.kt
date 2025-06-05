@@ -152,7 +152,7 @@ fun TelaHome(navController: NavHostController?) {
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp)) // Espaçamento entre a barra superior e o conteúdo
+        Spacer(modifier = Modifier.height(16.dp))
 
         // LazyColumn para exibir as notícias
         LazyColumn(
@@ -163,7 +163,7 @@ fun TelaHome(navController: NavHostController?) {
         ) {
             items(noticiasList) { noticia ->
                 NoticiaCard(noticia = noticia) { id ->
-                    // Ação ao clicar na notícia (navegar para detalhes, por exemplo)
+                    // Ação ao clicar na notícia
                     navController?.navigate("noticiaDetalhes/${id}")
                 }
             }

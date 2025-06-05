@@ -70,7 +70,8 @@ fun TelaNewNoticia(navHostController: NavHostController?) {
         selectedImageUris.clear()
         selectedImageUris.addAll(uris)
     }
-
+    //O LaunchedEffect Envia uma requisição para buscar as categorias.
+    //Se a resposta for OK, armazena essas categorias em uma variável (availableCategories), que provavelmente atualiza a UI.
     LaunchedEffect(Unit) {
         val call = RetrofitFactory().getNoticiaService().listAllCategorias()
         call.enqueue(object : Callback<CategoriaResponse> {
@@ -149,6 +150,8 @@ fun TelaNewNoticia(navHostController: NavHostController?) {
                         text = "Categorias *",
                         fontSize = 12.sp
                     )
+
+                    //flowrow utilizado para organizar os elementos
                     FlowRow(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -156,6 +159,7 @@ fun TelaNewNoticia(navHostController: NavHostController?) {
                     ) {
                         availableCategories.forEach { category ->
                             val isSelected = selectedCategoryIds.contains(category.id)
+                            //Componente visual clicável que representa a categoria
                             FilterChip(
                                 selected = isSelected,
                                 onClick = {

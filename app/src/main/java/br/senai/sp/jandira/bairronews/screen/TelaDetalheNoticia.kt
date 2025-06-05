@@ -342,9 +342,9 @@ fun TelaDetalheNoticia(navController: NavHostController?, noticiaId: Int?) {
                                 LocalDateTime.MIN
                             }
                         }
-                        items(sortedComments) { comentario ->
-                            ComentarioCard(comentario = comentario)
-                        }
+                        //items(sortedComments) { comentario ->
+                            //ComentarioCard(comentario = comentario)
+                        //}
                     }
                 }
             }

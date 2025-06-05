@@ -40,17 +40,23 @@ fun extrairCEP(displayName: String): String? {
 
 // Cliente Retrofit para Nominatim
 object NominatimRetrofit {
-    private const val BASE_URL = "https://nominatim.openstreetmap.org/"
+    private const val BASE_URL = "https://nominatim.openstreetmap.org/"  // Apenas o domínio base
 
     private val okHttpClient = OkHttpClient.Builder()
-        .connectTimeout(30, TimeUnit.SECONDS) // Aumenta o timeout de conexão
-        .readTimeout(30, TimeUnit.SECONDS)    // Aumenta o timeout de leitura
+        .connectTimeout(30, TimeUnit.SECONDS)
+        .readTimeout(30, TimeUnit.SECONDS)
+        .addInterceptor { chain ->
+            val request = chain.request().newBuilder()
+                .header("User-Agent", "BairroNewsApp/1.0")  // Nominatim requer User-Agent
+                .build()
+            chain.proceed(request)
+        }
         .build()
 
     private val retrofit: Retrofit by lazy {
         Retrofit.Builder()
             .baseUrl(BASE_URL)
-            .client(okHttpClient) // Adiciona o OkHttpClient configurado
+            .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }

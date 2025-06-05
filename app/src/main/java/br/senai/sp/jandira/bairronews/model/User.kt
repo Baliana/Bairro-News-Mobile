@@ -15,3 +15,4 @@ data class User(
     @SerializedName("foto_perfil")
     val fotoPerfil: String? = null
 )
+
