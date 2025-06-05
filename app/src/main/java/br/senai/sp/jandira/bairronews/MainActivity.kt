@@ -35,9 +35,9 @@ class MainActivity : ComponentActivity() {
                     composable("home") {
                         TelaHome(navController)
                     }
-                    //composable("telanew") {
-                    //    TelaAdd(navController)
-                    //}
+                    composable("telanew") {
+                        TelaNewNoticia(navController)
+                    }
                     // Nova rota para a tela de detalhes da notícia
                     composable(
                         "noticiaDetalhes/{noticiaId}", // O {noticiaId} indica um argumento

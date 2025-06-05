@@ -7,7 +7,7 @@ data class NoticiaCreatePayload(
     val conteudo: String,
     @SerializedName("tbl_usuario_id")
     val tblUsuarioId: Int,
-    val endereco: String, // Use o Endereco que criamos
+    val endereco: Endereco,
     @SerializedName("urls_midia")
     val urlsMidia: List<String>? = null, // Array de Strings de URL para o envio
     val categorias: List<Int>, // Array de IDs de categorias
