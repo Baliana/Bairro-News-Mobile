@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -25,8 +26,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import br.senai.sp.jandira.bairronews.components.ComentarioCard // Importar ComentarioCard
-import br.senai.sp.jandira.bairronews.model.Comentario // Usar Comentario diretamente
+import br.senai.sp.jandira.bairronews.components.ComentarioCard
+import br.senai.sp.jandira.bairronews.model.Comentario
 import br.senai.sp.jandira.bairronews.model.NoticiaItem
 import br.senai.sp.jandira.bairronews.model.NoticiaResponse
 import br.senai.sp.jandira.bairronews.service.RetrofitFactory
@@ -39,6 +40,7 @@ import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.util.Locale
+import java.time.ZoneOffset // Importar ZoneOffset para garantir o 'Z' no final
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,11 +51,11 @@ fun TelaDetalheNoticia(navController: NavHostController?, noticiaId: Int?) {
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val newComentarioContent = remember { mutableStateOf("") }
     var isSendingComment by remember { mutableStateOf(false) }
+    var showCommentInput by remember { mutableStateOf(false) }
 
     fun fetchNoticiaDetalhes(id: Int) {
         isLoading = true
         errorMessage = null
-        // CORREÇÃO: Usar listNoticia com o Path correto
         val call = RetrofitFactory().getNoticiaService().listNoticia(id)
 
         call.enqueue(object : Callback<NoticiaResponse> {
@@ -102,23 +104,29 @@ fun TelaDetalheNoticia(navController: NavHostController?, noticiaId: Int?) {
             return
         }
 
-        // Usando o modelo Comentario diretamente para o payload
+        // --- CORREÇÃO DA DATA: Formatar para o padrão ISO_OFFSET_DATE_TIME com 'Z' ---
+        val currentDateTime = LocalDateTime.now(ZoneOffset.UTC) // Usar UTC para garantir o 'Z'
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+        val formattedDate = currentDateTime.format(formatter)
+        Log.d("TelaDetalheNoticia", "Data formatada para envio: $formattedDate")
+
         val comentarioPayload = Comentario(
-            id = null, // ID pode ser nulo ou 0 para criação, dependendo da sua API
             conteudo = newComentarioContent.value.trim(),
             tblUsuarioId = userId,
-            dataPostagem = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) // Formato completo
+            tblNoticiaId = noticiaId,
+            dataPostagem = formattedDate // Usar a data formatada
         )
 
-        val call = RetrofitFactory().getNoticiaService().addComentario(noticiaId, comentarioPayload)
+        val call = RetrofitFactory().getNoticiaService().addComentario(comentarioPayload)
 
         call.enqueue(object : Callback<Comentario> {
             override fun onResponse(call: Call<Comentario>, response: Response<Comentario>) {
                 isSendingComment = false
                 if (response.isSuccessful) {
                     Toast.makeText(context, "Comentário enviado!", Toast.LENGTH_SHORT).show()
-                    newComentarioContent.value = "" // Limpa o campo
-                    noticiaId.let { fetchNoticiaDetalhes(it) } // Recarrega a notícia para ver o novo comentário
+                    newComentarioContent.value = ""
+                    showCommentInput = false
+                    noticiaId.let { fetchNoticiaDetalhes(it) }
                 } else {
                     val errorBody = response.errorBody()?.string()
                     Toast.makeText(context, "Erro ao enviar comentário: ${response.code()} - ${errorBody}", Toast.LENGTH_LONG).show()
@@ -153,9 +161,9 @@ fun TelaDetalheNoticia(navController: NavHostController?, noticiaId: Int?) {
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF999A9F),
-                    titleContentColor = Color.White,
-                    navigationIconContentColor = Color.White
+                    containerColor = Color(0xFFE0E0E0), // AppBar em tom de cinza claro
+                    titleContentColor = Color.Black, // Título da AppBar em preto
+                    navigationIconContentColor = Color.Black // Ícone de navegação em preto
                 )
             )
         }
@@ -165,13 +173,13 @@ fun TelaDetalheNoticia(navController: NavHostController?, noticiaId: Int?) {
                 .fillMaxSize()
                 .padding(paddingValues)
                 .background(
-                    color = Color(0xFFE1E1E1)
+                    color = Color(0xFFF0F0F0) // Fundo da tela em cinza quase branco
                 ),
             contentAlignment = Alignment.Center
         ) {
             if (isLoading) {
-                CircularProgressIndicator(color = Color.White)
-                Text("Carregando notícia...", color = Color.White, modifier = Modifier.offset(y = 40.dp))
+                CircularProgressIndicator(color = Color.Black) // Cor do loading em preto
+                Text("Carregando notícia...", color = Color.Black, modifier = Modifier.offset(y = 40.dp)) // Cor do texto de loading em preto
             } else if (errorMessage != null) {
                 Text(
                     text = errorMessage!!,
@@ -184,7 +192,7 @@ fun TelaDetalheNoticia(navController: NavHostController?, noticiaId: Int?) {
                     Text("Tentar Novamente")
                 }
             } else if (noticia == null) {
-                Text("Notícia não encontrada.", color = Color.White)
+                Text("Notícia não encontrada.", color = Color.Black) // Cor do texto em preto
             } else {
                 LazyColumn(
                     modifier = Modifier
@@ -218,7 +226,7 @@ fun TelaDetalheNoticia(navController: NavHostController?, noticiaId: Int?) {
                     item {
                         Text(
                             text = noticia?.titulo ?: "Título Indisponível",
-                            color = Color.White,
+                            color = Color.Black, // Texto preto
                             fontSize = 24.sp,
                             fontWeight = FontWeight.Bold,
                             lineHeight = 28.sp
@@ -237,14 +245,14 @@ fun TelaDetalheNoticia(navController: NavHostController?, noticiaId: Int?) {
                             }
                             Text(
                                 text = "Por ${noticia?.user?.nome ?: "Desconhecido"} em $dataFormatada",
-                                color = Color.LightGray,
+                                color = Color(0xFF616161), // Um cinza escuro para informações secundárias
                                 fontSize = 12.sp
                             )
                             val categoriasString = noticia?.categorias?.joinToString(", ") { it.nome }
                             if (!categoriasString.isNullOrBlank()) {
                                 Text(
                                     text = "Categorias: $categoriasString",
-                                    color = Color.LightGray,
+                                    color = Color(0xFF616161), // Um cinza escuro
                                     fontSize = 12.sp
                                 )
                             }
@@ -252,7 +260,7 @@ fun TelaDetalheNoticia(navController: NavHostController?, noticiaId: Int?) {
                             if (!enderecoDisplay.isNullOrBlank()) {
                                 Text(
                                     text = "Local: $enderecoDisplay",
-                                    color = Color.LightGray,
+                                    color = Color(0xFF616161), // Um cinza escuro
                                     fontSize = 12.sp
                                 )
                             }
@@ -263,7 +271,7 @@ fun TelaDetalheNoticia(navController: NavHostController?, noticiaId: Int?) {
                     item {
                         Text(
                             text = noticia?.conteudo ?: "Conteúdo da notícia indisponível.",
-                            color = Color.White,
+                            color = Color.Black, // Texto preto
                             fontSize = 16.sp,
                             lineHeight = 24.sp,
                             textAlign = TextAlign.Justify
@@ -272,54 +280,77 @@ fun TelaDetalheNoticia(navController: NavHostController?, noticiaId: Int?) {
 
                     // Seção de Comentários
                     item {
-                        Spacer(modifier = Modifier.height(24.dp))
-                        Text(
-                            text = "Comentários",
-                            color = Color.White,
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                    }
-
-                    // Campo para adicionar novo comentário
-                    item {
-                        Card(
+                        Row(
                             modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFFF0F0F0))
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Column(modifier = Modifier.padding(16.dp)) {
-                                Text(text = "Adicionar um comentário", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                                Spacer(modifier = Modifier.height(8.dp))
-                                OutlinedTextField(
-                                    value = newComentarioContent.value,
-                                    onValueChange = { newComentarioContent.value = it },
-                                    label = { Text("Seu comentário") },
-                                    modifier = Modifier.fillMaxWidth().heightIn(min = 60.dp, max = 120.dp),
-                                    shape = RoundedCornerShape(8.dp),
-                                    colors = OutlinedTextFieldDefaults.colors(
-                                        focusedBorderColor = Color.Red,
-                                        unfocusedBorderColor = Color.Gray
-                                    )
+                            Text(
+                                text = "Comentários",
+                                color = Color.Black, // Texto preto
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            // Botão para mostrar/esconder o campo de comentário
+                            IconButton(
+                                onClick = { showCommentInput = !showCommentInput },
+                                colors = IconButtonDefaults.iconButtonColors(
+                                    contentColor = Color.Black // Ícone em preto
                                 )
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Button(
-                                    onClick = { noticiaId?.let { sendComentario(it) } },
-                                    modifier = Modifier.align(Alignment.End),
-                                    enabled = !isSendingComment,
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red, contentColor = Color.White)
-                                ) {
-                                    if (isSendingComment) {
-                                        CircularProgressIndicator(color = Color.White, modifier = Modifier.size(20.dp))
-                                    } else {
-                                        Text("Enviar Comentário")
-                                        Icon(Icons.Filled.Send, contentDescription = "Enviar")
-                                    }
-                                }
+                            ) {
+                                Icon(Icons.Filled.ChatBubbleOutline, contentDescription = "Adicionar Comentário")
                             }
                         }
                         Spacer(modifier = Modifier.height(16.dp))
+                    }
+
+                    // Campo para adicionar novo comentário (condicional)
+                    if (showCommentInput) {
+                        item {
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(12.dp),
+                                colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFFFF)) // Fundo do card de comentário branco
+                            ) {
+                                Column(modifier = Modifier.padding(16.dp)) {
+                                    Text(text = "Adicionar um comentário", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color.Black)
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    OutlinedTextField(
+                                        value = newComentarioContent.value,
+                                        onValueChange = { newComentarioContent.value = it },
+                                        label = { Text("Seu comentário") },
+                                        modifier = Modifier.fillMaxWidth().heightIn(min = 60.dp, max = 120.dp),
+                                        shape = RoundedCornerShape(8.dp),
+                                        colors = OutlinedTextFieldDefaults.colors(
+                                            focusedBorderColor = Color.Red,
+                                            unfocusedBorderColor = Color.Gray,
+                                            focusedLabelColor = Color.Red,
+                                            unfocusedLabelColor = Color.Gray,
+                                            unfocusedTextColor = Color.Black, // Texto digitado em preto
+                                            focusedTextColor = Color.Black // Texto digitado em preto
+                                        )
+                                    )
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Button(
+                                        onClick = { noticiaId?.let { sendComentario(it) } },
+                                        modifier = Modifier.align(Alignment.End),
+                                        enabled = !isSendingComment,
+                                        colors = ButtonDefaults.buttonColors(containerColor = Color.Red, contentColor = Color.White)
+                                    ) {
+                                        if (isSendingComment) {
+                                            CircularProgressIndicator(color = Color.White, modifier = Modifier.size(20.dp))
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            Text("Enviando...")
+                                        } else {
+                                            Text("Enviar Comentário")
+                                            Spacer(modifier = Modifier.width(5.dp))
+                                            Icon(Icons.Filled.Send, contentDescription = "Enviar")
+                                        }
+                                    }
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(16.dp))
+                        }
                     }
 
                     // Lista de Comentários
@@ -327,7 +358,7 @@ fun TelaDetalheNoticia(navController: NavHostController?, noticiaId: Int?) {
                         item {
                             Text(
                                 text = "Nenhum comentário ainda. Seja o primeiro a comentar!",
-                                color = Color.LightGray,
+                                color = Color(0xFF616161), // Um cinza escuro
                                 fontSize = 14.sp,
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp)
@@ -338,13 +369,17 @@ fun TelaDetalheNoticia(navController: NavHostController?, noticiaId: Int?) {
                             try {
                                 OffsetDateTime.parse(it.dataPostagem, DateTimeFormatter.ISO_OFFSET_DATE_TIME).toLocalDateTime()
                             } catch (e: DateTimeParseException) {
-                                Log.e("TelaDetalheNoticia", "Erro ao parsear data do comentário: ${it.dataPostagem} - ${e.message}")
-                                LocalDateTime.MIN
+                                try {
+                                    LocalDateTime.parse(it.dataPostagem, DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                                } catch (e2: DateTimeParseException) {
+                                    Log.e("TelaDetalheNoticia", "Erro ao parsear data do comentário: ${it.dataPostagem} - ${e2.message}")
+                                    LocalDateTime.MIN
+                                }
                             }
                         }
-                        //items(sortedComments) { comentario ->
-                            //ComentarioCard(comentario = comentario)
-                        //}
+                        items(sortedComments) { comentario ->
+                            ComentarioCard(comentario = comentario)
+                        }
                     }
                 }
             }

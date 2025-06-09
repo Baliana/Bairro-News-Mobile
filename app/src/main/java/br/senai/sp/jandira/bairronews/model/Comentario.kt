@@ -6,9 +6,10 @@ data class Comentario(
     val id: Int? = null,
     val conteudo: String,
     @SerializedName("tbl_usuario_id")
-    val tblUsuarioId: Int? = null,
+    val tblUsuarioId: Int,
     @SerializedName("tbl_noticia_id")
-    val tblNoticiaId: Int? = null,
+    val tblNoticiaId: Int,
     @SerializedName("data_postagem")
-    val dataPostagem: String
+    val dataPostagem: String,
+    val user: ComentarioUser? = null
 )

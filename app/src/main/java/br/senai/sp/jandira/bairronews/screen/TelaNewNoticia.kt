@@ -26,12 +26,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import br.senai.sp.jandira.bairronews.R
-import br.senai.sp.jandira.bairronews.model.Endereco
+import br.senai.sp.jandira.bairronews.model.Endereco // Seu Endereco local para o payload
 import br.senai.sp.jandira.bairronews.model.NoticiaCreatePayload
 import br.senai.sp.jandira.bairronews.model.Categoria
 import br.senai.sp.jandira.bairronews.model.CategoriaResponse
 import br.senai.sp.jandira.bairronews.service.RetrofitFactory
-import br.senai.sp.jandira.bairronews.service.buscarCoordenadasComEndereco
+// import br.senai.sp.jandira.bairronews.service.buscarCoordenadasComEndereco // REMOVER ESTA LINHA
 import br.senai.sp.jandira.bairronews.service.uploadFileToAzure
 import kotlinx.coroutines.launch
 import retrofit2.Call
@@ -40,20 +40,25 @@ import retrofit2.Response
 import java.io.File
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import br.senai.sp.jandira.bairronews.model.InfoEndereco // IMPORTAR ESTA LINHA
 
 // Adicione ExperimentalLayoutApi aqui
 import androidx.compose.foundation.layout.ExperimentalLayoutApi // IMPORTANTE: Adicione esta importação
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class) // <-- CORREÇÃO AQUI
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun TelaNewNoticia(navHostController: NavHostController?) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
+    val scrollState = rememberScrollState() // Para a rolagem
 
     var titulo by remember { mutableStateOf("") }
     var conteudo by remember { mutableStateOf("") }
     var enderecoInput by remember { mutableStateOf("") }
-    var enderecoSelecionado by remember { mutableStateOf<Endereco?>(null) }
+    // O enderecoSelecionado agora armazena InfoEndereco, que será mapeado para Endereco do payload
+    var infoEnderecoSelecionado by remember { mutableStateOf<InfoEndereco?>(null) }
     var imageUrlsInput by remember { mutableStateOf("") }
     val selectedImageUris = remember { mutableStateListOf<Uri>() }
     var availableCategories by remember { mutableStateOf<List<Categoria>>(emptyList()) }
@@ -70,8 +75,7 @@ fun TelaNewNoticia(navHostController: NavHostController?) {
         selectedImageUris.clear()
         selectedImageUris.addAll(uris)
     }
-    //O LaunchedEffect Envia uma requisição para buscar as categorias.
-    //Se a resposta for OK, armazena essas categorias em uma variável (availableCategories), que provavelmente atualiza a UI.
+
     LaunchedEffect(Unit) {
         val call = RetrofitFactory().getNoticiaService().listAllCategorias()
         call.enqueue(object : Callback<CategoriaResponse> {
@@ -109,6 +113,8 @@ fun TelaNewNoticia(navHostController: NavHostController?) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(10.dp)
+                // Adicione a rolagem aqui!
+                .verticalScroll(scrollState) // <--- Adicionado para rolagem
         ) {
             Text(
                 text = "Enviar uma nova notícia ",
@@ -150,8 +156,6 @@ fun TelaNewNoticia(navHostController: NavHostController?) {
                         text = "Categorias *",
                         fontSize = 12.sp
                     )
-
-                    //flowrow utilizado para organizar os elementos
                     FlowRow(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -159,7 +163,6 @@ fun TelaNewNoticia(navHostController: NavHostController?) {
                     ) {
                         availableCategories.forEach { category ->
                             val isSelected = selectedCategoryIds.contains(category.id)
-                            //Componente visual clicável que representa a categoria
                             FilterChip(
                                 selected = isSelected,
                                 onClick = {
@@ -217,7 +220,7 @@ fun TelaNewNoticia(navHostController: NavHostController?) {
                             value = enderecoInput,
                             onValueChange = {
                                 enderecoInput = it
-                                enderecoSelecionado = null
+                                infoEnderecoSelecionado = null // Resetar o endereço selecionado
                                 showAddressError = false
                             },
                             label = { Text(text = "Digite o endereço (Rua, Cidade, Estado)") },
@@ -239,16 +242,31 @@ fun TelaNewNoticia(navHostController: NavHostController?) {
                                         isLoadingAddress = true
                                         showAddressError = false
                                         coroutineScope.launch {
-                                            val result = buscarCoordenadasComEndereco(enderecoInput)
-                                            isLoadingAddress = false
-                                            if (result != null) {
-                                                enderecoSelecionado = result
-                                                Toast.makeText(context, "Endereço validado!", Toast.LENGTH_SHORT).show()
-                                            } else {
-                                                enderecoSelecionado = null
-                                                showAddressError = true
-                                                Toast.makeText(context, "Endereço não encontrado ou inválido.", Toast.LENGTH_LONG).show()
-                                            }
+                                            // Chamar o novo endpoint infoEndereco
+                                            val call = RetrofitFactory().getNoticiaService().infoEndereco(enderecoInput)
+                                            call.enqueue(object : Callback<InfoEndereco> {
+                                                override fun onResponse(call: Call<InfoEndereco>, response: Response<InfoEndereco>) {
+                                                    isLoadingAddress = false
+                                                    if (response.isSuccessful && response.body() != null) {
+                                                        infoEnderecoSelecionado = response.body()
+                                                        Toast.makeText(context, "Endereço validado!", Toast.LENGTH_SHORT).show()
+                                                    } else {
+                                                        infoEnderecoSelecionado = null
+                                                        showAddressError = true
+                                                        val errorBody = response.errorBody()?.string()
+                                                        Log.e("TelaNewNoticia", "Erro ao buscar endereço: ${response.code()} - $errorBody")
+                                                        Toast.makeText(context, "Endereço não encontrado ou inválido. Código: ${response.code()}", Toast.LENGTH_LONG).show()
+                                                    }
+                                                }
+
+                                                override fun onFailure(call: Call<InfoEndereco>, t: Throwable) {
+                                                    isLoadingAddress = false
+                                                    infoEnderecoSelecionado = null
+                                                    showAddressError = true
+                                                    Log.e("TelaNewNoticia", "Falha na requisição de endereço: ${t.message}", t)
+                                                    Toast.makeText(context, "Erro de conexão ao buscar endereço.", Toast.LENGTH_LONG).show()
+                                                }
+                                            })
                                         }
                                     } else {
                                         showAddressError = true
@@ -270,9 +288,10 @@ fun TelaNewNoticia(navHostController: NavHostController?) {
                         )
                     }
 
-                    if (enderecoSelecionado != null) {
+                    // Exibir o endereço completo do InfoEndereco
+                    if (infoEnderecoSelecionado != null) {
                         Text(
-                            text = "Endereço selecionado: ${enderecoSelecionado!!.displayName} (CEP: ${enderecoSelecionado!!.cep})",
+                            text = "Endereço selecionado: ${infoEnderecoSelecionado!!.displayName} (CEP: ${infoEnderecoSelecionado!!.cep})",
                             fontSize = 12.sp,
                             color = Color.DarkGray,
                             modifier = Modifier.padding(top = 4.dp)
@@ -347,7 +366,8 @@ fun TelaNewNoticia(navHostController: NavHostController?) {
                                     return@Button
                                 }
 
-                                if (enderecoSelecionado == null) {
+                                // Verificar se o endereço foi validado
+                                if (infoEnderecoSelecionado == null) {
                                     showAddressError = true
                                     Toast.makeText(context, "Por favor, valide o endereço.", Toast.LENGTH_LONG).show()
                                     return@Button
@@ -358,6 +378,7 @@ fun TelaNewNoticia(navHostController: NavHostController?) {
 
                                     if (selectedImageUris.isNotEmpty()) {
                                         isUploadingImages = true
+                                        // Substitua pelo seu SAS Token real
                                         val sasToken = "sv=2022-11-02&ss=bfqt&srt=sco&sp=rwlacx&se=2025-12-31T23:59:59Z&st=2025-06-04T00:00:00Z&spr=https&sig=SUASIGNATURAAQUI"
                                         val storageAccount = "imgevideodenoticias"
                                         val containerName = "imagens"
@@ -392,11 +413,30 @@ fun TelaNewNoticia(navHostController: NavHostController?) {
 
                                     val dataPostagemFormatada = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
 
+                                    // Mapear InfoEndereco para Endereco para o payload
+                                    val enderecoParaPayload = Endereco(
+                                        cep = infoEnderecoSelecionado!!.cep,
+                                        displayName = infoEnderecoSelecionado!!.displayName,
+                                        lat = infoEnderecoSelecionado!!.lat.toDouble(),
+                                        lon = infoEnderecoSelecionado!!.lon.toDouble(),
+                                        // Os campos abaixo não estão no InfoEndereco atual,
+                                        // então podem ser nulos ou ter valores padrão se não forem obrigatórios no seu backend.
+                                        // Se forem obrigatórios, você precisará ajustar o InfoEndereco ou obter esses dados de outra forma.
+                                        logradouro = null,
+                                        complemento = null,
+                                        bairro = null,
+                                        localidade = null,
+                                        uf = null,
+                                        ibge = null,
+                                        gia = null,
+                                        siafi = null
+                                    )
+
                                     val noticiaData = NoticiaCreatePayload(
                                         titulo = titulo,
                                         conteudo = conteudo,
-                                        tblUsuarioId = 1,
-                                        endereco = enderecoSelecionado!!,
+                                        tblUsuarioId = 1, // Assumindo ID de usuário fixo por enquanto
+                                        endereco = enderecoParaPayload, // Usando o Endereco mapeado
                                         urlsMidia = if (allMediaUrls.isNotEmpty()) allMediaUrls else null,
                                         categorias = selectedCategoryIds.toList(),
                                         dataPostagem = dataPostagemFormatada

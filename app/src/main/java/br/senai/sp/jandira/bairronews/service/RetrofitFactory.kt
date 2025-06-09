@@ -5,7 +5,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import com.google.gson.GsonBuilder
 class RetrofitFactory {
 
-    private val BASE_URL = "http://10.107.134.26:8080/v1/bairro-news/"
+    private val BASE_URL = "http://192.168.15.13:8080/v1/bairro-news/"
     private val gson by lazy {
         GsonBuilder()
             .serializeNulls()
