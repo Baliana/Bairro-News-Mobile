@@ -123,7 +123,7 @@ fun TelaLogin(navController: NavHostController?) {
                 text = stringResource(R.string.Login),
                 fontWeight = FontWeight.Bold,
                 fontSize = 32.sp,
-                modifier = Modifier.padding(top = 64.dp)
+                modifier = Modifier.padding(top = 104.dp)
             )
 
             Spacer(modifier = Modifier.height(16.dp))

@@ -26,12 +26,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import br.senai.sp.jandira.bairronews.R
-import br.senai.sp.jandira.bairronews.model.Endereco // Seu Endereco local para o payload
+import br.senai.sp.jandira.bairronews.model.Endereco
 import br.senai.sp.jandira.bairronews.model.NoticiaCreatePayload
 import br.senai.sp.jandira.bairronews.model.Categoria
 import br.senai.sp.jandira.bairronews.model.CategoriaResponse
 import br.senai.sp.jandira.bairronews.service.RetrofitFactory
-// import br.senai.sp.jandira.bairronews.service.buscarCoordenadasComEndereco // REMOVER ESTA LINHA
 import br.senai.sp.jandira.bairronews.service.uploadFileToAzure
 import kotlinx.coroutines.launch
 import retrofit2.Call
@@ -42,22 +41,20 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import br.senai.sp.jandira.bairronews.model.InfoEndereco // IMPORTAR ESTA LINHA
+import br.senai.sp.jandira.bairronews.model.InfoEndereco
 
-// Adicione ExperimentalLayoutApi aqui
-import androidx.compose.foundation.layout.ExperimentalLayoutApi // IMPORTANTE: Adicione esta importação
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun TelaNewNoticia(navHostController: NavHostController?) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
-    val scrollState = rememberScrollState() // Para a rolagem
+    val scrollState = rememberScrollState()
 
     var titulo by remember { mutableStateOf("") }
     var conteudo by remember { mutableStateOf("") }
     var enderecoInput by remember { mutableStateOf("") }
-    // O enderecoSelecionado agora armazena InfoEndereco, que será mapeado para Endereco do payload
     var infoEnderecoSelecionado by remember { mutableStateOf<InfoEndereco?>(null) }
     var imageUrlsInput by remember { mutableStateOf("") }
     val selectedImageUris = remember { mutableStateListOf<Uri>() }
@@ -113,8 +110,7 @@ fun TelaNewNoticia(navHostController: NavHostController?) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(10.dp)
-                // Adicione a rolagem aqui!
-                .verticalScroll(scrollState) // <--- Adicionado para rolagem
+                .verticalScroll(scrollState)
         ) {
             Text(
                 text = "Enviar uma nova notícia ",
@@ -220,7 +216,7 @@ fun TelaNewNoticia(navHostController: NavHostController?) {
                             value = enderecoInput,
                             onValueChange = {
                                 enderecoInput = it
-                                infoEnderecoSelecionado = null // Resetar o endereço selecionado
+                                infoEnderecoSelecionado = null
                                 showAddressError = false
                             },
                             label = { Text(text = "Digite o endereço (Rua, Cidade, Estado)") },
@@ -242,7 +238,6 @@ fun TelaNewNoticia(navHostController: NavHostController?) {
                                         isLoadingAddress = true
                                         showAddressError = false
                                         coroutineScope.launch {
-                                            // Chamar o novo endpoint infoEndereco
                                             val call = RetrofitFactory().getNoticiaService().infoEndereco(enderecoInput)
                                             call.enqueue(object : Callback<InfoEndereco> {
                                                 override fun onResponse(call: Call<InfoEndereco>, response: Response<InfoEndereco>) {
@@ -288,7 +283,6 @@ fun TelaNewNoticia(navHostController: NavHostController?) {
                         )
                     }
 
-                    // Exibir o endereço completo do InfoEndereco
                     if (infoEnderecoSelecionado != null) {
                         Text(
                             text = "Endereço selecionado: ${infoEnderecoSelecionado!!.displayName} (CEP: ${infoEnderecoSelecionado!!.cep})",
@@ -366,7 +360,6 @@ fun TelaNewNoticia(navHostController: NavHostController?) {
                                     return@Button
                                 }
 
-                                // Verificar se o endereço foi validado
                                 if (infoEnderecoSelecionado == null) {
                                     showAddressError = true
                                     Toast.makeText(context, "Por favor, valide o endereço.", Toast.LENGTH_LONG).show()
@@ -378,7 +371,6 @@ fun TelaNewNoticia(navHostController: NavHostController?) {
 
                                     if (selectedImageUris.isNotEmpty()) {
                                         isUploadingImages = true
-                                        // Substitua pelo seu SAS Token real
                                         val sasToken = "sp=racwl&st=2025-06-10T02:35:11Z&se=2025-06-10T10:35:11Z&sv=2024-11-04&sr=c&sig=dvVA1a55li0hkl9MGNYZxwwIhneiVD%2F2yup3Zi%2BO2PU%3D"
                                         val storageAccount = "imagensevideos"
                                         val containerName = "imagens"
@@ -413,15 +405,11 @@ fun TelaNewNoticia(navHostController: NavHostController?) {
 
                                     val dataPostagemFormatada = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
 
-                                    // Mapear InfoEndereco para Endereco para o payload
                                     val enderecoParaPayload = Endereco(
                                         cep = infoEnderecoSelecionado!!.cep,
                                         displayName = infoEnderecoSelecionado!!.displayName,
                                         lat = infoEnderecoSelecionado!!.lat.toDouble(),
                                         lon = infoEnderecoSelecionado!!.lon.toDouble(),
-                                        // Os campos abaixo não estão no InfoEndereco atual,
-                                        // então podem ser nulos ou ter valores padrão se não forem obrigatórios no seu backend.
-                                        // Se forem obrigatórios, você precisará ajustar o InfoEndereco ou obter esses dados de outra forma.
                                         logradouro = null,
                                         complemento = null,
                                         bairro = null,
@@ -435,8 +423,8 @@ fun TelaNewNoticia(navHostController: NavHostController?) {
                                     val noticiaData = NoticiaCreatePayload(
                                         titulo = titulo,
                                         conteudo = conteudo,
-                                        tblUsuarioId = 1, // Assumindo ID de usuário fixo por enquanto
-                                        endereco = enderecoParaPayload, // Usando o Endereco mapeado
+                                        tblUsuarioId = 1,
+                                        endereco = enderecoParaPayload,
                                         urlsMidia = if (allMediaUrls.isNotEmpty()) allMediaUrls else null,
                                         categorias = selectedCategoryIds.toList(),
                                         dataPostagem = dataPostagemFormatada
@@ -447,9 +435,53 @@ fun TelaNewNoticia(navHostController: NavHostController?) {
                                         override fun onResponse(call: Call<br.senai.sp.jandira.bairronews.model.NoticiaItem>, response: Response<br.senai.sp.jandira.bairronews.model.NoticiaItem>) {
                                             if (response.isSuccessful) {
                                                 Toast.makeText(context, "Notícia publicada com sucesso!", Toast.LENGTH_SHORT).show()
-                                                navHostController?.navigate("home") {
+                                                // **** INÍCIO DA MUDANÇA E COMENTÁRIOS ****
+                                                // Opção 2: Navegar para a 'home' e, a partir da 'home', oferecer a opção de ir para o 'perfil'.
+                                                // Esta é a abordagem mais recomendada para uma boa experiência do usuário.
+                                                // O usuário chega na 'home' e recebe um feedback claro, com a opção de ir para o 'perfil'.
+                                                navHostController?.navigate("home?noticiaPublicada=true") {
+                                                    // popUpTo remove telas da pilha. Aqui, garante que a TelaNewNoticia seja removida,
+                                                    // e se houver outras telas entre a home e a TelaNewNoticia, elas também serão removidas.
                                                     popUpTo("home") { inclusive = true }
                                                 }
+
+                                                /*
+                                                // Para que isso funcione, você precisa:
+                                                // 1. Configurar a rota "home" no seu NavHost (onde você define suas rotas)
+                                                //    para aceitar um argumento booleano, por exemplo:
+                                                //    composable("home?noticiaPublicada={noticiaPublicada}",
+                                                //        arguments = listOf(navArgument("noticiaPublicada") { defaultValue = false })) { backStackEntry ->
+                                                //        val publicada = backStackEntry.arguments?.getBoolean("noticiaPublicada") ?: false
+                                                //        HomeScreen(navController, publicada) // Passa o argumento
+                                                //    }
+                                                //
+                                                // 2. Modificar sua HomeScreen para receber este argumento e exibir um Snackbar.
+                                                //    Exemplo na HomeScreen.kt:
+                                                //    @Composable
+                                                //    fun HomeScreen(navHostController: NavHostController?, noticiaPublicada: Boolean = false) {
+                                                //        val snackbarHostState = remember { SnackbarHostState() }
+                                                //        val scope = rememberCoroutineScope()
+                                                //
+                                                //        LaunchedEffect(key1 = noticiaPublicada) {
+                                                //            if (noticiaPublicada) {
+                                                //                val result = snackbarHostState.showSnackbar(
+                                                //                    message = "Notícia publicada com sucesso!",
+                                                //                    actionLabel = "Ver Perfil",
+                                                //                    duration = SnackbarDuration.Long
+                                                //                )
+                                                //                when (result) {
+                                                //                    SnackbarResult.ActionPerformed -> {
+                                                //                        navHostController?.navigate("perfil")
+                                                //                    }
+                                                //                    SnackbarResult.Dismissed -> { }
+                                                //                }
+                                                //            }
+                                                //        }
+                                                //        Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { ... }
+                                                //    }
+                                                */
+                                                // **** FIM DA MUDANÇA E COMENTÁRIOS ****
+
                                             } else {
                                                 val errorBody = response.errorBody()?.string()
                                                 Log.e("TelaNewNoticia", "Erro ao publicar notícia: ${response.code()} - $errorBody")

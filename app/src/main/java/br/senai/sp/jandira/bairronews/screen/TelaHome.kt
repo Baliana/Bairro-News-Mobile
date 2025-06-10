@@ -1,5 +1,4 @@
 package br.senai.sp.jandira.bairronews.screen
-
 import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.background
@@ -21,8 +20,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+// Importe rememberNavController para o preview
+import androidx.navigation.compose.rememberNavController
 import br.senai.sp.jandira.bairronews.R
-import br.senai.sp.jandira.bairronews.components.NoticiaCard // Importe o seu NoticiaCard
+import br.senai.sp.jandira.bairronews.components.NoticiaCard
 import br.senai.sp.jandira.bairronews.model.NoticiaItem
 import br.senai.sp.jandira.bairronews.model.NoticiaResponse
 import br.senai.sp.jandira.bairronews.service.RetrofitFactory
@@ -51,22 +52,22 @@ fun TelaHome(navController: NavHostController?) {
                         Log.d("TelaHome", "Notícias carregadas: ${noticiasList.size}")
                     } else {
                         Log.e("TelaHome", "Erro na resposta da API: ${responseBody?.mensagem}")
-                        // Exibir mensagem de erro para o usuário
+
                     }
                 } else {
                     Log.e("TelaHome", "Resposta não bem-sucedida: ${response.code()}")
-                    // Exibir mensagem de erro para o usuário
+
                 }
             }
 
             override fun onFailure(call: Call<NoticiaResponse>, t: Throwable) {
                 Log.e("TelaHome", "Erro na requisição: ${t.message}")
-                // Exibir mensagem de erro de conexão para o usuário
+
             }
         })
     }
 
-    // Efeito colateral para buscar as notícias quando o componente é criado
+
     LaunchedEffect(Unit) {
         fetchNoticias()
     }
@@ -75,10 +76,9 @@ fun TelaHome(navController: NavHostController?) {
     fun fazerLogout() {
         val sharedPrefs = context.getSharedPreferences("user", Context.MODE_PRIVATE)
         val editor = sharedPrefs.edit()
-        editor.clear() // Limpa todos os dados do usuário
-        editor.apply() // Aplica as mudanças
+        editor.clear()
+        editor.apply()
         navController?.navigate("login") {
-            // Limpa o back stack para que o usuário não volte para a Home
             popUpTo("home") { inclusive = true }
         }
     }
@@ -88,7 +88,7 @@ fun TelaHome(navController: NavHostController?) {
         // Top Bar (Header)
         Card(
             modifier = Modifier
-                .padding(top = 50.dp) // Ajuste conforme a necessidade do status bar
+                .padding(top = 50.dp)
                 .height(52.dp)
                 .fillMaxWidth()
         ) {
@@ -114,7 +114,7 @@ fun TelaHome(navController: NavHostController?) {
                     )
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = { /* Implementar pesquisa */ }) {
+                    IconButton(onClick = { }) {
                         Icon(
                             imageVector = Icons.Default.Search,
                             contentDescription = "Pesquisar",
@@ -132,7 +132,7 @@ fun TelaHome(navController: NavHostController?) {
                     }
 
                     Spacer(modifier = Modifier.width(8.dp))
-                    IconButton(onClick = { navController?.navigate("perfil") /* Navegar para tela de perfil */ }) {
+                    IconButton(onClick = { navController?.navigate("perfil") }) {
                         Icon(
                             imageVector = Icons.Default.Person,
                             contentDescription = "Usuário",
@@ -140,10 +140,9 @@ fun TelaHome(navController: NavHostController?) {
                         )
                     }
                     Spacer(modifier = Modifier.width(8.dp))
-                    // Botão de Logout
                     IconButton(onClick = { fazerLogout() }) {
                         Icon(
-                            imageVector = Icons.Default.ExitToApp, // Ícone de sair/deslogar
+                            imageVector = Icons.Default.ExitToApp,
                             contentDescription = "Sair",
                             tint = Color.Black
                         )
@@ -154,22 +153,21 @@ fun TelaHome(navController: NavHostController?) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // LazyColumn para exibir as notícias
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 16.dp), // Padding lateral para toda a LazyColumn
+                .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             items(noticiasList) { noticia ->
                 NoticiaCard(noticia = noticia) { id ->
-                    // Ação ao clicar na notícia
                     navController?.navigate("noticiaDetalhes/${id}")
                 }
             }
         }
     }
 }
+
 
 @Preview(showSystemUi = true)
 @Composable
