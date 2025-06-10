@@ -379,8 +379,8 @@ fun TelaNewNoticia(navHostController: NavHostController?) {
                                     if (selectedImageUris.isNotEmpty()) {
                                         isUploadingImages = true
                                         // Substitua pelo seu SAS Token real
-                                        val sasToken = "sv=2022-11-02&ss=bfqt&srt=sco&sp=rwlacx&se=2025-12-31T23:59:59Z&st=2025-06-04T00:00:00Z&spr=https&sig=SUASIGNATURAAQUI"
-                                        val storageAccount = "imgevideodenoticias"
+                                        val sasToken = "sp=racwl&st=2025-06-10T02:35:11Z&se=2025-06-10T10:35:11Z&sv=2024-11-04&sr=c&sig=dvVA1a55li0hkl9MGNYZxwwIhneiVD%2F2yup3Zi%2BO2PU%3D"
+                                        val storageAccount = "imagensevideos"
                                         val containerName = "imagens"
 
                                         for (uri in selectedImageUris) {
