@@ -435,52 +435,6 @@ fun TelaNewNoticia(navHostController: NavHostController?) {
                                         override fun onResponse(call: Call<br.senai.sp.jandira.bairronews.model.NoticiaItem>, response: Response<br.senai.sp.jandira.bairronews.model.NoticiaItem>) {
                                             if (response.isSuccessful) {
                                                 Toast.makeText(context, "Notícia publicada com sucesso!", Toast.LENGTH_SHORT).show()
-                                                // **** INÍCIO DA MUDANÇA E COMENTÁRIOS ****
-                                                // Opção 2: Navegar para a 'home' e, a partir da 'home', oferecer a opção de ir para o 'perfil'.
-                                                // Esta é a abordagem mais recomendada para uma boa experiência do usuário.
-                                                // O usuário chega na 'home' e recebe um feedback claro, com a opção de ir para o 'perfil'.
-                                                navHostController?.navigate("home?noticiaPublicada=true") {
-                                                    // popUpTo remove telas da pilha. Aqui, garante que a TelaNewNoticia seja removida,
-                                                    // e se houver outras telas entre a home e a TelaNewNoticia, elas também serão removidas.
-                                                    popUpTo("home") { inclusive = true }
-                                                }
-
-                                                /*
-                                                // Para que isso funcione, você precisa:
-                                                // 1. Configurar a rota "home" no seu NavHost (onde você define suas rotas)
-                                                //    para aceitar um argumento booleano, por exemplo:
-                                                //    composable("home?noticiaPublicada={noticiaPublicada}",
-                                                //        arguments = listOf(navArgument("noticiaPublicada") { defaultValue = false })) { backStackEntry ->
-                                                //        val publicada = backStackEntry.arguments?.getBoolean("noticiaPublicada") ?: false
-                                                //        HomeScreen(navController, publicada) // Passa o argumento
-                                                //    }
-                                                //
-                                                // 2. Modificar sua HomeScreen para receber este argumento e exibir um Snackbar.
-                                                //    Exemplo na HomeScreen.kt:
-                                                //    @Composable
-                                                //    fun HomeScreen(navHostController: NavHostController?, noticiaPublicada: Boolean = false) {
-                                                //        val snackbarHostState = remember { SnackbarHostState() }
-                                                //        val scope = rememberCoroutineScope()
-                                                //
-                                                //        LaunchedEffect(key1 = noticiaPublicada) {
-                                                //            if (noticiaPublicada) {
-                                                //                val result = snackbarHostState.showSnackbar(
-                                                //                    message = "Notícia publicada com sucesso!",
-                                                //                    actionLabel = "Ver Perfil",
-                                                //                    duration = SnackbarDuration.Long
-                                                //                )
-                                                //                when (result) {
-                                                //                    SnackbarResult.ActionPerformed -> {
-                                                //                        navHostController?.navigate("perfil")
-                                                //                    }
-                                                //                    SnackbarResult.Dismissed -> { }
-                                                //                }
-                                                //            }
-                                                //        }
-                                                //        Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { ... }
-                                                //    }
-                                                */
-                                                // **** FIM DA MUDANÇA E COMENTÁRIOS ****
 
                                             } else {
                                                 val errorBody = response.errorBody()?.string()

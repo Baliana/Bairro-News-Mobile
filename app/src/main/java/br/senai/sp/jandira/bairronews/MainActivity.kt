@@ -1,5 +1,6 @@
 package br.senai.sp.jandira.bairronews
 
+import TelaPerfil
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -37,6 +38,12 @@ class MainActivity : ComponentActivity() {
                     }
                     composable("telanew") {
                         TelaNewNoticia(navController)
+                    }
+                    composable("perfil") {
+                        TelaPerfil(navController)
+                    }
+                    composable("home") {
+                        TelaHome(navController)
                     }
                     // Nova rota para a tela de detalhes da notícia
                     composable(

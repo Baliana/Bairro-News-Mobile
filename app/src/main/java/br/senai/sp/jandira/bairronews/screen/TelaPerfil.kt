@@ -51,14 +51,17 @@ fun TelaPerfil(navController: NavController?) {
                     )
                 )
         )
-        Icon(
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(26.dp),
-            imageVector = Icons.Default.ExitToApp,
-            contentDescription = "Sair",
-            tint = Color.Black
-        )
+        IconButton(onClick = { navController?.navigate("home") }){
+            Icon(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(26.dp),
+                imageVector = Icons.Default.ExitToApp,
+                contentDescription = "Sair",
+                tint = Color.Black
+            )
+        }
+
 
         Column(
             modifier = Modifier
