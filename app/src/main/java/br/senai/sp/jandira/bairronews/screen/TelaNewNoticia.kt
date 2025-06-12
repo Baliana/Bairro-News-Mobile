@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -44,6 +45,10 @@ import androidx.compose.foundation.verticalScroll
 import br.senai.sp.jandira.bairronews.model.InfoEndereco
 
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.ui.draw.blur
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -98,13 +103,9 @@ fun TelaNewNoticia(navHostController: NavHostController?) {
             .fillMaxSize()
             .background(
                 brush = Brush.verticalGradient(
-                    listOf(
-                        Color(0xFF0390E1),
-                        Color(0xFF081E94)
-                    )
+                    colors = listOf(Color(0xFFB71C1C), Color(0xFF880E4F)) // Tom vinho escuro
                 )
-            ),
-        contentAlignment = Alignment.BottomCenter
+            )
     ) {
         Column(
             modifier = Modifier
@@ -124,9 +125,20 @@ fun TelaNewNoticia(navHostController: NavHostController?) {
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 5.dp),
-                shape = RoundedCornerShape(16.dp)
-            ) {
+                    .padding(12.dp)
+                    .graphicsLayer {
+                        alpha = 0.95f
+                        shadowElevation = 12.dp.toPx()
+                        clip = true
+                    },
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color(0xFFDDDDDD) // ou Color.LightGray
+                ),
+                border = BorderStroke(1.dp, Color.Gray.copy(alpha = 0.5f)),
+                elevation = CardDefaults.cardElevation(defaultElevation = 10.dp)
+            )
+            {
                 Column(
                     modifier = Modifier
                         .padding(16.dp)
@@ -135,7 +147,8 @@ fun TelaNewNoticia(navHostController: NavHostController?) {
                     Text(
                         modifier = Modifier.padding(top = 5.dp),
                         text = "Título *",
-                        fontSize = 12.sp
+                        fontSize = 12.sp,
+
                     )
                     OutlinedTextField(
                         value = titulo,
