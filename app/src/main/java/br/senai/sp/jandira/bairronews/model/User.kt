@@ -13,6 +13,8 @@ data class User(
     val biografia: String? = null,
 
     @SerializedName("foto_perfil")
-    val fotoPerfil: String? = null
+    val fotoPerfil: String? = null,
+
+    val noticias: List<NoticiaItem>? = null
 )
 
