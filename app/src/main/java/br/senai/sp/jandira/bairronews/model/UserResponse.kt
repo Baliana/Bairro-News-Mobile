@@ -6,7 +6,7 @@ data class UserResponse(
     val status: Boolean,
     @SerializedName("status_code")
     val statusCode: Int,
-    val items: Int?,
-    val usuarios: List<User>?,
-    val mensagem: String?
+    val items: Int?, // Este campo 'items' parece não estar na sua resposta de API. Se não for usado, pode remover ou manter como nullable.
+    @SerializedName("user") // <--- *** CORREÇÃO AQUI ***
+    val usuarios: List<User>? // Nome da variável Kotlin continua 'usuarios' mas mapeia para 'user' do JSON
 )

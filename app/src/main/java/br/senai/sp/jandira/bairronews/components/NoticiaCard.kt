@@ -34,6 +34,7 @@ import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.util.Locale
+import androidx.compose.runtime.remember // Adicionar esta importação
 
 @Composable
 fun NoticiaCard(
@@ -56,21 +57,35 @@ fun NoticiaCard(
             "https://via.placeholder.com/600x400/CCCCCC/FFFFFF?text=Sem+Imagem"
         }
 
-    val dataFormatada = try {
-        val parsedDateTime = OffsetDateTime.parse(noticia.dataPostagem, DateTimeFormatter.ISO_OFFSET_DATE_TIME)
-        parsedDateTime.toLocalDate().format(DateTimeFormatter.ofPattern("dd 'de' MMMM 'de'yyyy 'às' HH:mm", Locale("pt", "BR")))
-    } catch (e: DateTimeParseException) {
+    val dataFormatada = remember(noticia.dataPostagem) { // Usar remember para otimizar o cálculo
+        // *** LOG DA DATA BRUTA AQUI ***
+        Log.d("NoticiaCard", "DataPostagem bruta recebida: '${noticia.dataPostagem}' para a notícia ID: ${noticia.id}")
+
         try {
-            val parsedDate = LocalDate.parse(noticia.dataPostagem, DateTimeFormatter.ISO_LOCAL_DATE)
-            parsedDate.format(DateTimeFormatter.ofPattern("dd 'de' MMMM 'de'yyyy 'às' HH:mm", Locale("pt", "BR")))
-        } catch (e2: DateTimeParseException) {
-            Log.e("NoticiaCard", "Erro ao parsear data: ${noticia.dataPostagem} - ${e2.message}")
+            // Tenta o formato ISO 8601 completo, incluindo milissegundos e fuso horário
+            // Ex: "2024-05-28T00:00:00.000Z"
+            val apiDateFormatFull = DateTimeFormatter.ISO_OFFSET_DATE_TIME
+            val parsedDateTime = OffsetDateTime.parse(noticia.dataPostagem, apiDateFormatFull)
+            parsedDateTime.format(DateTimeFormatter.ofPattern("dd 'de' MMMM 'de' yyyy 'às' HH:mm", Locale("pt", "BR")))
+        } catch (e: DateTimeParseException) {
+            // Se o formato ISO_OFFSET_DATE_TIME falhar, tenta apenas o formato de data local
+            try {
+                // Ex: "2024-05-28"
+                val apiDateFormatLocal = DateTimeFormatter.ISO_LOCAL_DATE
+                val parsedDate = LocalDate.parse(noticia.dataPostagem, apiDateFormatLocal)
+                parsedDate.format(DateTimeFormatter.ofPattern("dd 'de' MMMM 'de' yyyy", Locale("pt", "BR"))) // Sem horas
+            } catch (e2: DateTimeParseException) {
+                // Se ambos falharem, loga o erro e retorna um valor padrão
+                Log.e("NoticiaCard", "Erro ao parsear data: ${noticia.dataPostagem} - ${e2.message}", e2)
+                "Data Indisponível"
+            }
+        } catch (e: Exception) {
+            // Captura qualquer outra exceção inesperada
+            Log.e("NoticiaCard", "Erro inesperado ao formatar data: ${e.message}", e)
             "Data Indisponível"
         }
-    } catch (e: Exception) {
-        Log.e("NoticiaCard", "Erro inesperado ao formatar data: ${e.message}")
-        "Data Indisponível"
     }
+
 
     val categoriaNome =
         if (noticia.categorias != null && noticia.categorias.isNotEmpty()) {
@@ -117,6 +132,8 @@ fun NoticiaCard(
                     .background(Color.Black.copy(alpha = 0.4f))
             )
 
+            // Condição para exibir o botão de deletar:
+            // O usuário logado deve ser o proprietário da notícia
             if (currentUserId != null && noticia.tblUsuarioId != null && currentUserId == noticia.tblUsuarioId) {
                 IconButton(
                     onClick = {
@@ -195,7 +212,7 @@ fun NoticiaCardPreview() {
         id = 1,
         titulo = "Novo centro comunitário será inaugurado em Breve com muitas novidades para a comunidade",
         conteudo = "Conteúdo da notícia (não visível neste card)",
-        dataPostagem = "2024-05-28T00:00:00.000Z",
+        dataPostagem = "2024-05-28T00:00:00.000Z", // Exemplo de data ISO 8601 completa
         categorias = listOf(Categoria(id = 1, nome = "Esporte", descricao = "Esporte da comunidade", sigla = "ESP")),
         urlsMidia = listOf(br.senai.sp.jandira.bairronews.model.UrlMidiaItem(urlMidia = "https://via.placeholder.com/600x400/FF0000/FFFFFF?text=Placeholder")),
         endereco = Endereco(cep = "00000-000", lat = -23.0, lon = -46.0, displayName = "Rua das Flores, 123 - Centro, São Paulo"),
@@ -206,7 +223,7 @@ fun NoticiaCardPreview() {
         id = 2,
         titulo = "Reunião de moradores para discutir segurança",
         conteudo = "Conteúdo da notícia (não visível neste card)",
-        dataPostagem = "2024-05-29T10:30:00.000Z",
+        dataPostagem = "2024-05-29T10:30:00.000Z", // Exemplo de data ISO 8601 completa
         categorias = listOf(Categoria(id = 2, nome = "Segurança", descricao = "Segurança pública", sigla = "SEG")),
         urlsMidia = emptyList(),
         endereco = null,
@@ -214,18 +231,16 @@ fun NoticiaCardPreview() {
     )
 
     Column {
-        // Correção: Passar um lambda para 'onClick' explicitamente.
-        // O segundo lambda será para 'onDeleteClick'.
         NoticiaCard(
             noticia = sampleNoticiaDoUsuarioLogado,
-            onClick = { noticiaId -> Log.d("NoticiaCardPreview", "Clicou na notícia com ID: $noticiaId") }, // <--- Adicionado
+            onClick = { noticiaId -> Log.d("NoticiaCardPreview", "Clicou na notícia com ID: $noticiaId") },
             onDeleteClick = { noticiaId -> Log.d("NoticiaCardPreview", "Deletar notícia (simulado) com ID: $noticiaId") }
         )
         Spacer(modifier = Modifier.height(16.dp))
 
         NoticiaCard(
             noticia = sampleNoticiaDeOutroUsuario,
-            onClick = { noticiaId -> Log.d("NoticiaCardPreview", "Clicou na notícia com ID: $noticiaId") }, // <--- Adicionado
+            onClick = { noticiaId -> Log.d("NoticiaCardPreview", "Clicou na notícia com ID: $noticiaId") },
             onDeleteClick = { noticiaId -> Log.d("NoticiaCardPreview", "Deletar notícia (simulado) com ID: $noticiaId") }
         )
     }

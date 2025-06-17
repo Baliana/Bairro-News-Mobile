@@ -77,6 +77,7 @@ fun TelaLogin(navController: NavHostController?) {
                         editor.putString("user_email", usuario.email?.trim())
                         editor.putString("user_biografia", usuario.biografia ?: "")
                         editor.putString("user_foto", usuario.fotoPerfil ?: "")
+                        editor.putString("user_data_nascimento", usuario.dataDeNascimento)
                         editor.apply()
 
                         Log.d("TelaLogin", "Login bem-sucedido. Navegando para 'home'.")

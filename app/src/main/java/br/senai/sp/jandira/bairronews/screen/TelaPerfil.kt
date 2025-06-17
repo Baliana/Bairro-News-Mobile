@@ -1,21 +1,30 @@
+// app/src/main/java/br.senai.sp.jandira.bairronews.screen/TelaPerfil.kt
 package br.senai.sp.jandira.bairronews.screen
 
 import android.content.Context
+import android.net.Uri
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+// REMOVA ESTE IMPORT: import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+// REMOVA ESTE IMPORT: import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.LazyColumn // ADICIONE ESTE IMPORT PARA USAR LazyColumn
+import androidx.compose.foundation.lazy.items // ADICIONE ESTE IMPORT PARA USAR items em LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.verticalScroll // MANTENHA ESTE SE VOCÊ USAR UM COLUMN ROLÁVEL NA RAIZ
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -29,10 +38,14 @@ import androidx.navigation.NavController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil.compose.AsyncImage // Importe para carregar imagem da URL
+import coil.compose.AsyncImage
 import br.senai.sp.jandira.bairronews.components.DeletionEvent
 import br.senai.sp.jandira.bairronews.components.NoticiaCard
-import br.senai.sp.jandira.bairronews.components.ProfileViewModel
+import br.senai.sp.jandira.bairronews.viewmodel.ProfileViewModel
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.foundation.text.KeyboardOptions // MANTENHA ESTE IMPORT
+import androidx.compose.ui.text.style.TextAlign // Importar TextAlign
 
 // Função para sair de perfil
 fun fazerLogout(context: Context, navController: NavController) {
@@ -41,8 +54,8 @@ fun fazerLogout(context: Context, navController: NavController) {
     editor.clear()
     editor.apply()
 
-    navController.navigate("login") { // Mudei para login, pois home pode não ser a tela inicial
-        popUpTo("home") { inclusive = true } // Se quiser limpar a pilha até home antes de ir para login
+    navController.navigate("login") {
+        popUpTo("home") { inclusive = true }
     }
 }
 
@@ -54,13 +67,19 @@ fun TelaPerfil(navController: NavController?) {
         factory = ProfileViewModel.Factory(context)
     )
 
-    // Coletar eventos de deleção do ViewModel para exibir Toasts (do DeletionModel)
+    // Launcher para selecionar imagem da galeria
+    val pickImageLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        profileViewModel.updateSelectedPhotoUri(uri)
+    }
+
+    // Coletar eventos de deleção (do DeletionModel)
     LaunchedEffect(Unit) {
         profileViewModel.deletionViewModel.deletionEvents.collect { event ->
             when (event) {
                 is DeletionEvent.Success -> {
                     Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
-                    // Recarregar os dados do usuário após uma exclusão bem-sucedida para atualizar a lista
                     profileViewModel.fetchUserData()
                 }
                 is DeletionEvent.Error -> {
@@ -70,6 +89,20 @@ fun TelaPerfil(navController: NavController?) {
         }
     }
 
+    // Coletar mensagens de atualização do perfil
+    LaunchedEffect(profileViewModel.updateSuccessMessage) {
+        profileViewModel.updateSuccessMessage?.let {
+            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+            // profileViewModel.clearUpdateSuccessMessage()
+        }
+    }
+
+    LaunchedEffect(profileViewModel.updateErrorMessage) {
+        profileViewModel.updateErrorMessage?.let {
+            Toast.makeText(context, it, Toast.LENGTH_LONG).show()
+            // profileViewModel.clearUpdateErrorMessage()
+        }
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         // Fundo com gradiente
@@ -83,124 +116,284 @@ fun TelaPerfil(navController: NavController?) {
                     )
                 )
         )
-        IconButton(onClick = { navController?.navigate("home") }){
+        // Botão de Sair
+        IconButton(
+            onClick = { navController?.let { fazerLogout(context, it) } },
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(26.dp)
+        ) {
             Icon(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(26.dp),
                 imageVector = Icons.Default.ExitToApp,
                 contentDescription = "Sair",
-                tint = Color.White // Ícone branco para contraste com o gradiente
+                tint = Color.White
             )
         }
 
+        // Botão de Editar/Salvar Perfil
+        IconButton(
+            onClick = {
+                if (profileViewModel.isEditing) {
+                    profileViewModel.saveProfileChanges()
+                } else {
+                    profileViewModel.toggleEditMode()
+                }
+            },
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(26.dp)
+        ) {
+            Icon(
+                imageVector = if (profileViewModel.isEditing) Icons.Default.Save else Icons.Default.Edit,
+                contentDescription = if (profileViewModel.isEditing) "Salvar" else "Editar Perfil",
+                tint = Color.White
+            )
+        }
 
-        Column(
+        // ALTERAÇÃO CRÍTICA AQUI: Usando LazyColumn como o container de rolagem principal
+        LazyColumn( // Mude Column para LazyColumn
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState()) // Use rememberScrollState diretamente aqui
-                .padding(top = 130.dp) // Espaço para a foto de perfil flutuar
+                // REMOVA .verticalScroll(rememberScrollState()) do LazyColumn
+                .padding(top = 130.dp),
+            // REMOVIDO: horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Card com informações do usuário
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                shape = RoundedCornerShape(16.dp),
-                elevation = CardDefaults.cardElevation(4.dp)
-            ) {
-                Column(
+            // Item para o Card com informações do usuário
+            item {
+                Card(
                     modifier = Modifier
-                        .padding(top = 80.dp, // Espaço para a foto de perfil sobrepor
-                            bottom = 16.dp,
-                            start = 16.dp,
-                            end = 16.dp
-                        )
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    elevation = CardDefaults.cardElevation(4.dp)
                 ) {
-                    if (profileViewModel.isLoading) {
-                        CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text("Carregando perfil...", modifier = Modifier.align(Alignment.CenterHorizontally))
-                    } else if (profileViewModel.errorMessage != null) {
-                        Text("Erro: ${profileViewModel.errorMessage}", color = Color.Red)
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Button(onClick = { profileViewModel.fetchUserData() }) {
-                            Text("Tentar Novamente")
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth() // Adicionado para centralizar conteúdo
+                            .padding(top = 80.dp,
+                                bottom = 16.dp,
+                                start = 16.dp,
+                                end = 16.dp
+                            ),
+                        horizontalAlignment = Alignment.CenterHorizontally // Alinhe o conteúdo da Column interna
+                    ) {
+                        if (profileViewModel.isLoading) {
+                            CircularProgressIndicator(modifier = Modifier.wrapContentWidth(Alignment.CenterHorizontally))
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text("Carregando perfil...", modifier = Modifier.wrapContentWidth(Alignment.CenterHorizontally))
+                        } else if (profileViewModel.errorMessage != null) {
+                            Text("Erro: ${profileViewModel.errorMessage}", color = Color.Red)
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Button(onClick = { profileViewModel.fetchUserData() }) {
+                                Text("Tentar Novamente")
+                            }
+                        } else {
+                            // Nome do usuário (Editável se estiver no modo de edição)
+                            if (profileViewModel.isEditing) {
+                                OutlinedTextField(
+                                    value = profileViewModel.editedName,
+                                    onValueChange = { profileViewModel.updateEditedName(it) },
+                                    label = { Text("Nome") },
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            } else {
+                                Text(profileViewModel.currentUser?.nome ?: "Nome de Usuário",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 20.sp,
+                                    modifier = Modifier.fillMaxWidth(), // Garante que o Text ocupe a largura total
+                                    textAlign = TextAlign.Center // Centraliza o texto
+                                )
+                            }
+
+                            // Email (sempre em modo de visualização, não editável aqui)
+                            Text(profileViewModel.currentUser?.email ?: "Email ou Cargo",
+                                fontSize = 14.sp,
+                                color = Color.Gray,
+                                modifier = Modifier.fillMaxWidth(), // Garante que o Text ocupe a largura total
+                                textAlign = TextAlign.Center // Centraliza o texto
+                            )
+
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            // Biografia (Editável se estiver no modo de edição)
+                            Text("Sobre",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp,
+                                modifier = Modifier.fillMaxWidth(), // Garante que o Text ocupe a largura total
+                                textAlign = TextAlign.Center // Centraliza o texto
+                            )
+                            if (profileViewModel.isEditing) {
+                                OutlinedTextField(
+                                    value = profileViewModel.editedBiography,
+                                    onValueChange = { profileViewModel.updateEditedBiography(it) },
+                                    label = { Text("Biografia") },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    minLines = 3
+                                )
+                            } else {
+                                Text(
+                                    profileViewModel.currentUser?.biografia ?: "Nenhuma biografia disponível.",
+                                    fontSize = 14.sp,
+                                    modifier = Modifier.fillMaxWidth(), // Garante que o Text ocupe a largura total
+                                    textAlign = TextAlign.Center // Centraliza o texto
+                                )
+                            }
+
+                            // Opções de foto de perfil (Editável se estiver no modo de edição)
+                            if (profileViewModel.isEditing) {
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Text("Foto de Perfil",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 16.sp,
+                                    modifier = Modifier.fillMaxWidth(), // Garante que o Text ocupe a largura total
+                                    textAlign = TextAlign.Center // Centraliza o texto
+                                )
+                                Button(
+                                    onClick = { pickImageLauncher.launch("image/*") },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = RoundedCornerShape(12.dp),
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFADD8E6))
+                                ) {
+                                    Icon(Icons.Default.AddAPhoto, contentDescription = "Selecionar Foto")
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text("Selecionar da Galeria")
+                                }
+                                if (profileViewModel.selectedPhotoUri != null) {
+                                    Text(
+                                        text = "Imagem selecionada da galeria.",
+                                        fontSize = 12.sp,
+                                        color = Color.DarkGray,
+                                        modifier = Modifier
+                                            .padding(top = 4.dp)
+                                            .fillMaxWidth(), // Garante que o Text ocupe a largura total
+                                        textAlign = TextAlign.Center // Centraliza o texto
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.height(8.dp))
+
+                                OutlinedTextField(
+                                    value = profileViewModel.editedPhotoUrlInput,
+                                    onValueChange = { profileViewModel.updateEditedPhotoUrlInput(it) },
+                                    label = { Text(text = "Ou cole a URL da imagem") },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    singleLine = true,
+                                    shape = RoundedCornerShape(12.dp)
+                                )
+                                if (profileViewModel.editedPhotoUrlInput.isNotBlank()) {
+                                    Text(
+                                        text = "Usando URL digitada.",
+                                        fontSize = 12.sp,
+                                        color = Color.DarkGray,
+                                        modifier = Modifier
+                                            .padding(top = 4.dp)
+                                            .fillMaxWidth(), // Garante que o Text ocupe a largura total
+                                        textAlign = TextAlign.Center // Centraliza o texto
+                                    )
+                                }
+
+
+                                // Campo de senha para confirmar as alterações
+                                Spacer(modifier = Modifier.height(16.dp))
+                                OutlinedTextField(
+                                    value = profileViewModel.confirmationPassword,
+                                    onValueChange = { profileViewModel.updateConfirmationPassword(it) },
+                                    label = { Text("Confirme sua Senha") },
+                                    visualTransformation = PasswordVisualTransformation(),
+                                    keyboardOptions = KeyboardOptions( // Agora KeyboardOptions está sendo referenciado corretamente
+                                        keyboardType = KeyboardType.Password
+                                    ),
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+
+                                // Indicadores de carregamento para o salvamento e upload
+                                if (profileViewModel.isUpdating || profileViewModel.isUploadingPhoto) {
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    CircularProgressIndicator(modifier = Modifier.wrapContentWidth(Alignment.CenterHorizontally))
+                                    Text(
+                                        text = if (profileViewModel.isUploadingPhoto) "Enviando foto..." else "Salvando perfil...",
+                                        modifier = Modifier.wrapContentWidth(Alignment.CenterHorizontally)
+                                    )
+                                }
+                            }
                         }
-                    } else {
-                        // Nome do usuário
-                        Text(profileViewModel.currentUser?.nome ?: "Nome de Usuário",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 20.sp
-                        )
-                        // Email ou uma descrição simples
-                        Text(profileViewModel.currentUser?.email ?: "Email ou Cargo",
-                            fontSize = 14.sp,
-                            color = Color.Gray
-                        )
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        // Biografia
-                        Text("Sobre",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp
-                        )
-                        Text(
-                            profileViewModel.currentUser?.biografia ?: "Nenhuma biografia disponível.",
-                            fontSize = 14.sp
-                        )
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            // Espaçador após o card de perfil
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+            }
 
-            // Título para as Notícias
-            Text(
-                text = "Minhas Notícias",
-                fontWeight = FontWeight.Bold,
-                fontSize = 18.sp,
-                modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
-            )
 
-            // LazyVerticalGrid para as notícias
-            if (profileViewModel.isLoading) {
-                // Indicador de carregamento para as notícias também
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
-            } else if (profileViewModel.currentUser?.noticias.isNullOrEmpty()) {
-                Text(
-                    text = "Você não possui notícias publicadas.",
-                    fontSize = 16.sp,
-                    color = Color.Gray,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                )
-            } else {
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(2), // Duas colunas
-                    contentPadding = PaddingValues(horizontal = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    modifier = Modifier.heightIn(max = 1000.dp) // Limita a altura para que a LazyVerticalGrid funcione dentro de um Column rolavel. Ajuste conforme necessário.
-                ) {
-                    items(profileViewModel.currentUser?.noticias ?: listOf()) { noticia ->
-                        NoticiaCard(
-                            noticia = noticia,
-                            onClick = { id ->
-                                navController?.navigate("noticiaDetalhes/${id}")
-                            },
-                            onDeleteClick = { id -> profileViewModel.deletionViewModel.confirmDeletion(id) } // Deleção via ViewModel
+            // Título para as Notícias (apenas visível no modo de visualização)
+            if (!profileViewModel.isEditing) {
+                item { // Mova o Text para dentro de um item() para o LazyColumn
+                    Text(
+                        text = "Minhas Notícias",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp,
+                        modifier = Modifier
+                            .fillMaxWidth() // Adicionado para permitir o padding horizontal
+                            .padding(start = 16.dp, bottom = 8.dp),
+                        textAlign = TextAlign.Start // Alinhe o título à esquerda se preferir
+                    )
+                }
+
+                // Substitua LazyVerticalGrid por LazyColumn e renderize os itens em GridCells
+                // Isso requer um pouco de adaptação para simular uma grade dentro de uma coluna
+                if (profileViewModel.isLoading) {
+                    item { // Coloque o CircularProgressIndicator dentro de um item()
+                        CircularProgressIndicator(modifier = Modifier.wrapContentWidth(Alignment.CenterHorizontally))
+                    }
+                } else if (profileViewModel.currentUser?.noticias.isNullOrEmpty()) {
+                    item { // Coloque o Text dentro de um item()
+                        Text(
+                            text = "Você não possui notícias publicadas.",
+                            fontSize = 16.sp,
+                            color = Color.Gray,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            textAlign = TextAlign.Center
                         )
                     }
+                } else {
+                    // Crie itens em pares para simular a grade de 2 colunas
+                    val noticias = profileViewModel.currentUser?.noticias ?: listOf()
+                    val pairs = noticias.chunked(2) // Cria pares de notícias
+
+                    items(pairs) { pair ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp), // Ajuste o padding
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            pair.forEach { noticia ->
+                                Box(modifier = Modifier.weight(1f)) { // Cada notícia ocupa 1/2 da largura
+                                    NoticiaCard(
+                                        noticia = noticia,
+                                        onClick = { id -> navController?.navigate("noticiaDetalhes/${id}") },
+                                        onDeleteClick = { id -> profileViewModel.deletionViewModel.confirmDeletion(id) }
+                                    )
+                                }
+                            }
+                            // Adiciona um Box vazio para preencher a segunda coluna se houver um número ímpar de notícias
+                            if (pair.size == 1) {
+                                Box(modifier = Modifier.weight(1f)) {}
+                            }
+                        }
+                    }
+                    item { // Espaçador no final das notícias
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
                 }
-                Spacer(modifier = Modifier.height(16.dp)) // Espaçamento após a grade
             }
         }
 
-        // Foto de perfil flutuante
+        // Foto de perfil flutuante (fora do LazyColumn)
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -218,7 +411,14 @@ fun TelaPerfil(navController: NavController?) {
                 ),
                 elevation = CardDefaults.cardElevation(6.dp)
             ) {
-                if (profileViewModel.currentUser?.fotoPerfil.isNullOrBlank()) {
+                // Lógica para exibir a imagem correta
+                val photoUrlToDisplay = when {
+                    profileViewModel.selectedPhotoUri != null -> profileViewModel.selectedPhotoUri
+                    profileViewModel.editedPhotoUrlInput.isNotBlank() -> profileViewModel.editedPhotoUrlInput
+                    else -> profileViewModel.currentUser?.fotoPerfil
+                }
+
+                if (photoUrlToDisplay == null || photoUrlToDisplay.toString().isBlank()) {
                     Icon(
                         imageVector = Icons.Default.Person,
                         contentDescription = "Foto de perfil",
@@ -226,21 +426,21 @@ fun TelaPerfil(navController: NavController?) {
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(16.dp)
-                            .background(Color.LightGray) // Fundo cinza para ícone padrão
+                            .background(Color.LightGray)
                     )
                 } else {
                     AsyncImage(
-                        model = profileViewModel.currentUser?.fotoPerfil,
+                        model = photoUrlToDisplay,
                         contentDescription = "Foto de perfil do usuário",
                         modifier = Modifier.fillMaxSize(),
-                        contentScale = androidx.compose.ui.layout.ContentScale.Crop // Para cortar a imagem e preencher
+                        contentScale = androidx.compose.ui.layout.ContentScale.Crop
                     )
                 }
             }
         }
     }
 
-    // AlertDialog de confirmação de deleção (reutilizado do DeletionModel)
+    // AlertDialog de confirmação de deleção
     if (profileViewModel.deletionViewModel.showDeleteConfirmationDialog) {
         AlertDialog(
             onDismissRequest = { profileViewModel.deletionViewModel.dismissDeleteConfirmation() },
@@ -250,9 +450,6 @@ fun TelaPerfil(navController: NavController?) {
                 Button(
                     onClick = {
                         profileViewModel.deletionViewModel.executeDelete {
-                            // Este callback será chamado pelo DeletionModel para informar que a notícia foi removida
-                            // Precisamos recarregar os dados do usuário para que a lista de notícias seja atualizada
-                            // Alternativamente, poderíamos filtrar a lista localmente no ViewModel do perfil
                             profileViewModel.fetchUserData()
                         }
                     }

@@ -24,6 +24,10 @@ interface UserService {
     @PUT("user/login")
     fun loginUser(@Body login: Login): Call<AuthenticationUser>
 
+    @Headers("Content-Type: application/json")
+    @PUT("user/{id}")
+    fun updateUser(@Path("id") id: Int, @Body user: User): Call<UserResponse>
+
     @GET("user/{id}")
     fun dataUser(@Path("id") id: Int): Call<UserResponse>
 }
